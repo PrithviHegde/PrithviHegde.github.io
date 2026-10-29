@@ -1,0 +1,6 @@
+# Private working notes and tooling: this repo is served publicly by GitHub Pages
+.DS_Store
+.claude/
+HANDOFF.md
+TODO.md
+sketches/

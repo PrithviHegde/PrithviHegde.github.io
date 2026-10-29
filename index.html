@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" data-palette="a">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prithvi Hegde</title>
+  <meta name="description" content="Prithvi Hegde: MS Data Science student at the University of Washington, working where machine learning meets human decision-making.">
+  <meta property="og:title" content="Prithvi Hegde">
+  <meta property="og:description" content="MS Data Science at the University of Washington. Machine learning, human decision-making and explainable AI, especially in finance.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='2' height='1' fill='%237f9a6c'/%3E%3Crect x='0' y='2' width='4' height='2' fill='%233d5f40'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23a6c290'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    /* Palettes: three candidates while we choose (see #preview). Keep one, delete the rest.
+       Every text colour passes WCAG AA on its background in both themes. */
+
+    /* A: paper and moss. Warm off-white, moss-green links. */
+    :root[data-palette="a"] {
+      --bg: #f5f3ec; --text: #1f2420; --muted: #5a6156; --accent: #3d5f40; --line: #dcd8cc;
+      --moss-1: #c5d3b4; --moss-2: #9fb38c; --moss-3: #6f8a62;
+    }
+    /* B: stone and lichen. Cool grey, olive links. The most neutral. */
+    :root[data-palette="b"] {
+      --bg: #f2f2ef; --text: #212428; --muted: #5c6068; --accent: #56622f; --line: #d9d9d3;
+      --moss-1: #d3d6b4; --moss-2: #aeb385; --moss-3: #80885a;
+    }
+    /* C: bark and fern. Warm parchment, rust links; green only in the moss. */
+    :root[data-palette="c"] {
+      --bg: #f6f1e8; --text: #29231d; --muted: #665c51; --accent: #8f4a2a; --line: #e2d8c8;
+      --moss-1: #c4cdac; --moss-2: #9aa880; --moss-3: #6f8160;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"])[data-palette="a"] {
+        --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
+        --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
+      }
+      :root:not([data-theme="light"])[data-palette="b"] {
+        --bg: #16181a; --text: #e3e4e1; --muted: #9a9e98; --accent: #bcc58c; --line: #2c2f31;
+        --moss-1: #2d3226; --moss-2: #444b33; --moss-3: #646d45;
+      }
+      :root:not([data-theme="light"])[data-palette="c"] {
+        --bg: #1a1714; --text: #ebe4d9; --muted: #a99e90; --accent: #d39066; --line: #342e28;
+        --moss-1: #2e3526; --moss-2: #435034; --moss-3: #61704b;
+      }
+    }
+    :root[data-theme="dark"][data-palette="a"] {
+      --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
+      --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
+    }
+    :root[data-theme="dark"][data-palette="b"] {
+      --bg: #16181a; --text: #e3e4e1; --muted: #9a9e98; --accent: #bcc58c; --line: #2c2f31;
+      --moss-1: #2d3226; --moss-2: #444b33; --moss-3: #646d45;
+    }
+    :root[data-theme="dark"][data-palette="c"] {
+      --bg: #1a1714; --text: #ebe4d9; --muted: #a99e90; --accent: #d39066; --line: #342e28;
+      --moss-1: #2e3526; --moss-2: #435034; --moss-3: #61704b;
+    }
+
+    :root {
+      --serif: "Source Serif 4", Georgia, serif;
+      --sans: Inter, -apple-system, "Segoe UI", sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 400 1rem/1.65 var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    main { position: relative; max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+    a:hover { text-decoration-thickness: 2px; }
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+    p { margin: 0 0 1rem; }
+
+    /* Header */
+    h1 {
+      font: 600 2.6rem/1.1 var(--serif);
+      letter-spacing: -0.01em;
+      margin: 0 0 0.9rem;
+    }
+    .pitch { font-size: 1.15rem; line-height: 1.55; max-width: 36rem; margin-bottom: 1.4rem; }
+    .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
+    .now {
+      margin-top: 2.2rem;
+      padding-left: 0.9rem;
+      border-left: 2px solid var(--moss-2);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .now p { margin: 0; }
+
+    /* Sections: small label, then entries in a date | content grid */
+    section { margin-top: 4rem; }
+    h2 {
+      font: 400 0.75rem/1 var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 1.5rem;
+      padding-bottom: 0.7rem;
+      border-bottom: 1px solid var(--line);
+    }
+    .entry { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.5rem; margin-bottom: 1.9rem; }
+    .entry:last-child { margin-bottom: 0; }
+    .when { font: 400 0.8rem/1.9 var(--mono); color: var(--muted); white-space: nowrap; }
+    h3 { font: 600 1.15rem/1.35 var(--serif); margin: 0 0 0.15rem; }
+    .role { color: var(--muted); font-size: 0.95rem; margin: 0 0 0.5rem; }
+    .entry p:last-child { margin-bottom: 0; }
+    .entry ul { margin: 0; padding-left: 1.1rem; }
+    .entry li { margin-bottom: 0.35rem; }
+    .entry li::marker { color: var(--muted); }
+    .qmr { margin: 0.5rem 0 0.6rem; }
+    .qmr div { display: grid; grid-template-columns: 4.6rem 1fr; gap: 0.75rem; margin-bottom: 0.35rem; }
+    .qmr dt { font: 400 0.72rem/1.95 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .qmr dd { margin: 0; }
+    .tag {
+      display: inline-block;
+      font: 400 0.68rem/1 var(--mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      border-radius: 3px;
+      padding: 0.25rem 0.4rem;
+      margin-left: 0.4rem;
+      vertical-align: 0.2em;
+    }
+    .project-links { font-size: 0.95rem; }
+    .cite { font-size: 0.95rem; }
+    .cite .me { font-weight: 600; }
+
+    footer {
+      margin-top: 5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font: 400 0.8rem/1.6 var(--mono);
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1.5rem;
+    }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 40rem) {
+      main { padding-top: 3.5rem; }
+      h1 { font-size: 2.15rem; }
+      .entry { grid-template-columns: 1fr; }
+      .when { line-height: 1.6; margin-bottom: 0.2rem; }
+    }
+
+    /* Preview only (#preview): palette switcher and a static moss swatch */
+    .preview-bar {
+      position: fixed; top: 0.75rem; right: 0.75rem; z-index: 2;
+      display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end;
+      font: 400 0.75rem/1 var(--mono);
+    }
+    .preview-bar button {
+      font: inherit; color: var(--text); background: var(--bg);
+      border: 1px solid var(--line); border-radius: 3px; padding: 0.45rem 0.6rem; cursor: pointer;
+    }
+    .preview-bar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+    #moss-swatch {
+      position: fixed; left: 0; bottom: 0; z-index: 0;
+      width: 100vw; height: 46vh; pointer-events: none;
+      image-rendering: pixelated;
+    }
+    main { z-index: 1; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Prithvi Hegde</h1>
+      <p class="pitch">MS Data Science student at the University of Washington. I work where machine learning meets human decision-making, especially models that can explain themselves, and especially in finance.</p>
+      <ul class="links">
+        <!-- Résumé: add once the web copy (no phone number) is ready.
+        <li><a href="resume.pdf">Résumé</a></li> -->
+        <li><a href="mailto:prithvihegde123@gmail.com">Email</a></li>
+        <li><a href="https://github.com/PrithviHegde">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></li>
+      </ul>
+      <div class="now">
+        <p>Open to internships and research roles in data science, machine learning, AI and quantitative finance.</p>
+      </div>
+    </header>
+
+    <section id="about" aria-labelledby="about-h">
+      <h2 id="about-h">About</h2>
+      <p>I'm interested in AI systems that help people decide: how a model's prediction becomes a human's choice, and how to make that model explain itself well enough to be trusted, questioned or overruled. Finance is where I want to do this work.</p>
+      <p>I've seen that problem up close. For two years I built loan underwriting strategy at Wells Fargo, where a model's score becomes a yes or a no for a real applicant.</p>
+      <!-- TODO(Prithvi): more research interests to come. -->
+      <p>Away from the screen I love nature, and moss in particular. The moss gardens I visited in Japan are a big part of why.</p>
+    </section>
+
+    <section id="projects" aria-labelledby="projects-h">
+      <h2 id="projects-h">Projects</h2>
+
+      <article class="entry">
+        <div class="when">2026&ndash;</div>
+        <div>
+          <h3>FilingDelta <span class="tag">In progress</span></h3>
+          <dl class="qmr">
+            <div><dt>Question</dt><dd>When management changes the wording of a company's SEC filings, does the stock price react, and how quickly?</dd></div>
+            <div><dt>Method</dt><dd>A pipeline over 88 quarterly and annual filings from 11 large caps: extract and clean the Management's Discussion &amp; Analysis, pair filings year-over-year and quarter-over-quarter, and time each event by when the SEC accepted it rather than the posted filing date.</dd></div>
+            <div><dt>Status</dt><dd>Data pipeline done (78 filing pairs). Paragraph-level diffing and the event study come next.</dd></div>
+          </dl>
+          <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta">Code and notes</a></p>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="when">2026</div>
+        <div>
+          <h3>moss</h3>
+          <dl class="qmr">
+            <div><dt>Question</dt><dd>Why do plants spread faster than an average dispersal distance predicts? (Reid's paradox: oak reclaimed Britain far too fast after the last ice age.)</dd></div>
+            <div><dt>Method</dt><dd>Simulated spread under Gaussian, exponential and lognormal dispersal kernels with the same mean distance; modelled when ferns appear with Weibull waiting times.</dd></div>
+            <div><dt>Result</dt><dd>After 40 generations the fat-tailed lognormal colony reaches 14&times; farther than the Gaussian one, and it is still speeding up.</dd></div>
+          </dl>
+          <p class="project-links"><a href="https://github.com/PrithviHegde/moss">Notebook and write-up</a></p>
+        </div>
+      </article>
+    </section>
+
+    <section id="publications" aria-labelledby="pubs-h">
+      <h2 id="pubs-h">Publications</h2>
+      <article class="entry">
+        <div class="when">2023</div>
+        <div>
+          <h3>Secure and Efficient Key Management for Deduplicated Cloud Storage Systems</h3>
+          <p class="cite">J. Dave, A. Kanodia, R. Srivastava, K. Singh, <span class="me">P. Hegde</span>, H. Desai. <em>16th International Conference on Security of Information and Networks (SIN)</em>, 2023. <a href="https://doi.org/10.1109/SIN60469.2023.10475109">DOI</a></p>
+        </div>
+      </article>
+    </section>
+
+    <section id="experience" aria-labelledby="exp-h">
+      <h2 id="exp-h">Experience</h2>
+
+      <article class="entry">
+        <div class="when">2024&ndash;2026</div>
+        <div>
+          <h3>Wells Fargo</h3>
+          <p class="role">Analyst, Personal Lending Decision Science &middot; Hyderabad</p>
+          <ul>
+            <li>Rebuilt the personal lending underwriting strategy around a new LightGBM score (a 4.9-point KS lift over the incumbent model), simulating the new decision rules on 10M+ applications.</li>
+            <li>Launched it as a 50/50 champion&ndash;challenger test, projected to add $250M in FY&rsquo;26 loan bookings at marginal extra risk.</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="when">2024</div>
+        <div>
+          <h3>Aurigo Software Technologies</h3>
+          <p class="role">Software Development Engineering Intern &middot; Bangalore</p>
+          <p>Built C#/.NET dashboards for a large U.S. government client and fixed data-integrity and API bugs during hypercare.</p>
+        </div>
+      </article>
+
+      <article class="entry">
+        <div class="when">2022</div>
+        <div>
+          <h3>Agrix Agro</h3>
+          <p class="role">Data Science Intern &middot; Remote</p>
+          <p>Clustered 700K+ tractor GPS records with DBSCAN to tell fields from roads, which improved tilling efficiency by 15% through better routing.</p>
+        </div>
+      </article>
+    </section>
+
+    <section id="education" aria-labelledby="edu-h">
+      <h2 id="edu-h">Education</h2>
+      <article class="entry">
+        <div class="when">2026&ndash;2028</div>
+        <div>
+          <h3>University of Washington</h3>
+          <p class="role">MS, Data Science &middot; expected March 2028</p>
+        </div>
+      </article>
+      <article class="entry">
+        <div class="when">2020&ndash;2024</div>
+        <div>
+          <h3>BITS Pilani, Hyderabad</h3>
+          <p class="role">BE, Computer Science</p>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <span>&copy; 2026 Prithvi Hegde</span>
+      <span><a href="mailto:prithvihegde123@gmail.com">Email</a> &middot; <a href="https://github.com/PrithviHegde">GitHub</a> &middot; <a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></span>
+    </footer>
+  </main>
+
+  <script>
+    // Preview mode (open with #preview): compare palettes and themes, with a static moss swatch.
+    // Delete this script once a palette is chosen and the real moss background exists.
+    (function () {
+      if (!/preview/.test(location.hash)) return;
+      var root = document.documentElement;
+      var store = {
+        get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+      };
+      root.dataset.palette = store.get('palette') || 'a';
+      var savedTheme = store.get('theme');
+      if (savedTheme) root.dataset.theme = savedTheme;
+
+      var bar = document.createElement('div');
+      bar.className = 'preview-bar';
+      var groups = [
+        ['palette', [['a', 'A paper'], ['b', 'B stone'], ['c', 'C bark']]],
+        ['theme', [['light', 'Light'], ['dark', 'Dark']]],
+        ['moss', [['on', 'Moss']]]
+      ];
+      groups.forEach(function (g) {
+        g[1].forEach(function (opt) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = opt[1];
+          b.dataset.group = g[0];
+          b.dataset.value = opt[0];
+          b.addEventListener('click', function () {
+            if (g[0] === 'moss') {
+              canvas.hidden = !canvas.hidden;
+            } else {
+              root.dataset[g[0]] = opt[0];
+              store.set(g[0], opt[0]);
+              draw();
+            }
+            sync();
+          });
+          bar.appendChild(b);
+        });
+      });
+      document.body.appendChild(bar);
+
+      var canvas = document.createElement('canvas');
+      canvas.id = 'moss-swatch';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.insertBefore(canvas, document.body.firstChild);
+
+      function sync() {
+        var dark = root.dataset.theme ? root.dataset.theme === 'dark'
+          : matchMedia('(prefers-color-scheme: dark)').matches;
+        bar.querySelectorAll('button').forEach(function (b) {
+          var on = b.dataset.group === 'moss' ? !canvas.hidden
+            : b.dataset.group === 'theme' ? (b.dataset.value === 'dark') === dark
+            : root.dataset[b.dataset.group] === b.dataset.value;
+          b.setAttribute('aria-pressed', on);
+        });
+      }
+
+      // Static cushion-moss clumps in the bottom corners, kept out of the text column (as the real
+      // background's clearing will be). Seeded, so every palette shows the same shapes.
+      function draw() {
+        var cell = 5;
+        var w = Math.ceil(innerWidth / cell), h = Math.ceil(innerHeight * 0.46 / cell);
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        var cs = getComputedStyle(root);
+        var tones = ['--moss-1', '--moss-2', '--moss-3'].map(function (v) { return cs.getPropertyValue(v).trim(); });
+        var seed = 7;
+        function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+        var col = document.querySelector('main').getBoundingClientRect();
+        var clearL = (col.left + 8) / cell, clearR = (col.right - 8) / cell;
+        // [x as a fraction of width, radius in cells]; each clump is a dome sitting on the bottom edge
+        var clumps = [[0.02, 30], [0.12, 18], [0.9, 34], [0.99, 20], [0.79, 12]];
+        ctx.clearRect(0, 0, w, h);
+        for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+          if (x > clearL && x < clearR) continue;
+          var v = 0;
+          clumps.forEach(function (c) {
+            var dx = (x - c[0] * w) / (c[1] * 1.5), dy = (h - y) / c[1];
+            v += Math.exp(-(dx * dx + dy * dy) * 2);
+          });
+          v *= Math.min(1, Math.min(Math.abs(x - clearL), Math.abs(x - clearR)) / 14);
+          v += (rand() - 0.5) * 0.3;
+          if (v < 0.3) continue;
+          ctx.fillStyle = tones[v > 0.85 ? 2 : v > 0.55 ? 1 : 0];
+          ctx.fillRect(x, y, 1, 1);
+        }
+      }
+      addEventListener('resize', draw);
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { draw(); sync(); });
+      draw();
+      sync();
+    })();
+  </script>
+</body>
+</html>
