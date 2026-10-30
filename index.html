@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-palette="a">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,49 +13,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
   <style>
-    /* Palettes: three candidates while we choose (see #preview). Keep one, delete the rest.
-       Every text colour passes WCAG AA on its background in both themes. */
-
-    /* A: paper and moss. Warm off-white, moss-green links. */
-    :root[data-palette="a"] {
+    /* Paper and moss: warm off-white, moss-green links. Every text colour passes WCAG AA in both themes. */
+    :root {
       --bg: #f5f3ec; --text: #1f2420; --muted: #5a6156; --accent: #3d5f40; --line: #dcd8cc;
       --moss-1: #c5d3b4; --moss-2: #9fb38c; --moss-3: #6f8a62;
     }
-    /* B: stone and lichen. Cool grey, olive links. The most neutral. */
-    :root[data-palette="b"] {
-      --bg: #f2f2ef; --text: #212428; --muted: #5c6068; --accent: #56622f; --line: #d9d9d3;
-      --moss-1: #d3d6b4; --moss-2: #aeb385; --moss-3: #80885a;
-    }
-    /* C: bark and fern. Warm parchment, rust links; green only in the moss. */
-    :root[data-palette="c"] {
-      --bg: #f6f1e8; --text: #29231d; --muted: #665c51; --accent: #8f4a2a; --line: #e2d8c8;
-      --moss-1: #c4cdac; --moss-2: #9aa880; --moss-3: #6f8160;
-    }
     @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"])[data-palette="a"] {
+      :root:not([data-theme="light"]) {
         --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
         --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
       }
-      :root:not([data-theme="light"])[data-palette="b"] {
-        --bg: #16181a; --text: #e3e4e1; --muted: #9a9e98; --accent: #bcc58c; --line: #2c2f31;
-        --moss-1: #2d3226; --moss-2: #444b33; --moss-3: #646d45;
-      }
-      :root:not([data-theme="light"])[data-palette="c"] {
-        --bg: #1a1714; --text: #ebe4d9; --muted: #a99e90; --accent: #d39066; --line: #342e28;
-        --moss-1: #2e3526; --moss-2: #435034; --moss-3: #61704b;
-      }
     }
-    :root[data-theme="dark"][data-palette="a"] {
+    :root[data-theme="dark"] {
       --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
       --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
-    }
-    :root[data-theme="dark"][data-palette="b"] {
-      --bg: #16181a; --text: #e3e4e1; --muted: #9a9e98; --accent: #bcc58c; --line: #2c2f31;
-      --moss-1: #2d3226; --moss-2: #444b33; --moss-3: #646d45;
-    }
-    :root[data-theme="dark"][data-palette="c"] {
-      --bg: #1a1714; --text: #ebe4d9; --muted: #a99e90; --accent: #d39066; --line: #342e28;
-      --moss-1: #2e3526; --moss-2: #435034; --moss-3: #61704b;
     }
 
     :root {
@@ -72,7 +43,7 @@
       font: 400 1rem/1.65 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    main { position: relative; max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
+    main { max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
     a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
     a:hover { text-decoration-thickness: 2px; }
     a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
@@ -152,23 +123,6 @@
       .when { line-height: 1.6; margin-bottom: 0.2rem; }
     }
 
-    /* Preview only (#preview): palette switcher and a static moss swatch */
-    .preview-bar {
-      position: fixed; top: 0.75rem; right: 0.75rem; z-index: 2;
-      display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: flex-end;
-      font: 400 0.75rem/1 var(--mono);
-    }
-    .preview-bar button {
-      font: inherit; color: var(--text); background: var(--bg);
-      border: 1px solid var(--line); border-radius: 3px; padding: 0.45rem 0.6rem; cursor: pointer;
-    }
-    .preview-bar button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
-    #moss-swatch {
-      position: fixed; left: 0; bottom: 0; z-index: 0;
-      width: 100vw; height: 46vh; pointer-events: none;
-      image-rendering: pixelated;
-    }
-    main { z-index: 1; }
   </style>
 </head>
 <body>
@@ -294,101 +248,5 @@
       <span><a href="mailto:prithvihegde123@gmail.com">Email</a> &middot; <a href="https://github.com/PrithviHegde">GitHub</a> &middot; <a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></span>
     </footer>
   </main>
-
-  <script>
-    // Preview mode (open with #preview): compare palettes and themes, with a static moss swatch.
-    // Delete this script once a palette is chosen and the real moss background exists.
-    (function () {
-      if (!/preview/.test(location.hash)) return;
-      var root = document.documentElement;
-      var store = {
-        get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-        set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-      };
-      root.dataset.palette = store.get('palette') || 'a';
-      var savedTheme = store.get('theme');
-      if (savedTheme) root.dataset.theme = savedTheme;
-
-      var bar = document.createElement('div');
-      bar.className = 'preview-bar';
-      var groups = [
-        ['palette', [['a', 'A paper'], ['b', 'B stone'], ['c', 'C bark']]],
-        ['theme', [['light', 'Light'], ['dark', 'Dark']]],
-        ['moss', [['on', 'Moss']]]
-      ];
-      groups.forEach(function (g) {
-        g[1].forEach(function (opt) {
-          var b = document.createElement('button');
-          b.type = 'button';
-          b.textContent = opt[1];
-          b.dataset.group = g[0];
-          b.dataset.value = opt[0];
-          b.addEventListener('click', function () {
-            if (g[0] === 'moss') {
-              canvas.hidden = !canvas.hidden;
-            } else {
-              root.dataset[g[0]] = opt[0];
-              store.set(g[0], opt[0]);
-              draw();
-            }
-            sync();
-          });
-          bar.appendChild(b);
-        });
-      });
-      document.body.appendChild(bar);
-
-      var canvas = document.createElement('canvas');
-      canvas.id = 'moss-swatch';
-      canvas.setAttribute('aria-hidden', 'true');
-      document.body.insertBefore(canvas, document.body.firstChild);
-
-      function sync() {
-        var dark = root.dataset.theme ? root.dataset.theme === 'dark'
-          : matchMedia('(prefers-color-scheme: dark)').matches;
-        bar.querySelectorAll('button').forEach(function (b) {
-          var on = b.dataset.group === 'moss' ? !canvas.hidden
-            : b.dataset.group === 'theme' ? (b.dataset.value === 'dark') === dark
-            : root.dataset[b.dataset.group] === b.dataset.value;
-          b.setAttribute('aria-pressed', on);
-        });
-      }
-
-      // Static cushion-moss clumps in the bottom corners, kept out of the text column (as the real
-      // background's clearing will be). Seeded, so every palette shows the same shapes.
-      function draw() {
-        var cell = 5;
-        var w = Math.ceil(innerWidth / cell), h = Math.ceil(innerHeight * 0.46 / cell);
-        canvas.width = w; canvas.height = h;
-        var ctx = canvas.getContext('2d');
-        var cs = getComputedStyle(root);
-        var tones = ['--moss-1', '--moss-2', '--moss-3'].map(function (v) { return cs.getPropertyValue(v).trim(); });
-        var seed = 7;
-        function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-        var col = document.querySelector('main').getBoundingClientRect();
-        var clearL = (col.left + 8) / cell, clearR = (col.right - 8) / cell;
-        // [x as a fraction of width, radius in cells]; each clump is a dome sitting on the bottom edge
-        var clumps = [[0.02, 30], [0.12, 18], [0.9, 34], [0.99, 20], [0.79, 12]];
-        ctx.clearRect(0, 0, w, h);
-        for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
-          if (x > clearL && x < clearR) continue;
-          var v = 0;
-          clumps.forEach(function (c) {
-            var dx = (x - c[0] * w) / (c[1] * 1.5), dy = (h - y) / c[1];
-            v += Math.exp(-(dx * dx + dy * dy) * 2);
-          });
-          v *= Math.min(1, Math.min(Math.abs(x - clearL), Math.abs(x - clearR)) / 14);
-          v += (rand() - 0.5) * 0.3;
-          if (v < 0.3) continue;
-          ctx.fillStyle = tones[v > 0.85 ? 2 : v > 0.55 ? 1 : 0];
-          ctx.fillRect(x, y, 1, 1);
-        }
-      }
-      addEventListener('resize', draw);
-      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { draw(); sync(); });
-      draw();
-      sync();
-    })();
-  </script>
 </body>
 </html>
