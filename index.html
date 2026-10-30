@@ -17,16 +17,19 @@
     :root {
       --bg: #f5f3ec; --text: #1f2420; --muted: #5a6156; --accent: #3d5f40; --line: #dcd8cc;
       --moss-1: #c5d3b4; --moss-2: #9fb38c; --moss-3: #6f8a62;
+      --fern-stem: #2a432c; --fern-leaf: #3b6438; --fern-tip: #7fa968;
     }
     @media (prefers-color-scheme: dark) {
       :root:not([data-theme="light"]) {
         --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
         --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
+        --fern-stem: #6c8c5c; --fern-leaf: #8db077; --fern-tip: #c3d9a9;
       }
     }
     :root[data-theme="dark"] {
       --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
       --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
+      --fern-stem: #6c8c5c; --fern-leaf: #8db077; --fern-tip: #c3d9a9;
     }
 
     :root {
@@ -43,7 +46,8 @@
       font: 400 1rem/1.65 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    main { max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
+    .moss { position: fixed; top: 0; left: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+    main { position: relative; z-index: 1; max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
     a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
     a:hover { text-decoration-thickness: 2px; }
     a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
@@ -244,9 +248,10 @@
     </section>
 
     <footer>
-      <span>&copy; 2026 Prithvi Hegde</span>
+      <span>&copy; 2026 Prithvi Hegde &middot; <a href="https://github.com/PrithviHegde/moss">About the moss</a></span>
       <span><a href="mailto:prithvihegde123@gmail.com">Email</a> &middot; <a href="https://github.com/PrithviHegde">GitHub</a> &middot; <a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></span>
     </footer>
   </main>
+  <script src="moss.js" defer></script>
 </body>
 </html>
