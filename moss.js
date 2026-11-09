@@ -2,7 +2,8 @@
 // spores travel lognormal distances, and the waits for new patches and for ferns are Weibull.
 //
 // The garden fills the top of the page and carries on down the side margins, stopping well short
-// of the text. Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
+// of the text. Ground stays asleep until it first scrolls into view, so visitors see each part of
+// the garden begin; once seen, it keeps growing whether or not it's on screen. Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
 // habitat map marks as damp enough, so it creeps in fingers and patches rather than circles.
 // Ferns rise from settled moss, more often next to other ferns, leaning whichever way they like.
 // Creepers grow along the edges. The cursor only disturbs: it clears moss (which grows back),
@@ -26,6 +27,7 @@
 
   // Pacing and look (tuned by eye)
   var START_SEEDS = 3;
+  var WAKE_SEEDS = 7;                  // spores landing per screenful of newly seen margin
   var RELEASE_RATE = 2.5;              // spores released per moss pixel per second
   var MAX_RELEASES = 2500;             // per frame, to bound the work on big pages
   var MARGIN = 12;                     // pixels kept bare between the side gardens and the text column
@@ -64,12 +66,14 @@
   var cleared = new Uint8Array(0);     // 1 where the cursor cleared moss that may grow back
   var habitat = new Float32Array(0);   // how damp each pixel's ground is, 0 to 1
   var mossList = new Int32Array(0), mossAt = new Int32Array(0), mossCount = 0;   // moss pixels, for picking one at random
+  var wokeAt = new Float32Array(0);    // when each row first came into view (s), or -1 while still unseen
+  var awakeRows = 0, seedDebt = 0;
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };   // the intro text, in pixels
   var heroH = 0, gutL = -1, gutR = 1e9;            // the top garden's height; where the text column's bare band starts and ends
   var ferns = [], pending = [], vines = [];
   var C = {};
   var ground = [Math.random() * 100, Math.random() * 100];   // a different habitat map on every visit
-  var startedAt = 0, cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, screens = 1;
+  var startedAt = 0, cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false;
 
   // ---- sampling and noise ----------------------------------------------------
 
@@ -114,7 +118,10 @@
       for (var y = 0; y < Math.min(h, H); y++) {
         for (var x = 0; x < Math.min(w, W); x++) { nb[y * w + x] = born[y * W + x]; nc[y * w + x] = cleared[y * W + x]; }
       }
-      W = w; H = h; born = nb; cleared = nc;
+      var nw = new Float32Array(h).fill(-1);
+      for (var r = 0; r < Math.min(h, H); r++) nw[r] = wokeAt[r];
+      W = w; H = h; born = nb; cleared = nc; wokeAt = nw;
+      awakeRows = 0; for (r = 0; r < H; r++) if (wokeAt[r] >= 0) awakeRows++;
       canvas.width = W; canvas.height = H;
       canvas.style.width = W * P + 'px';
       canvas.style.height = H * P + 'px';
@@ -142,7 +149,6 @@
     gutR = Math.ceil((mr.right - pad) / P) + MARGIN;
     if (gutL < MIN_GUTTER) gutL = -1;
     if (W - gutR < MIN_GUTTER) gutR = W + 1;
-    screens = Math.max(1, (H * P) / Math.max(1, innerHeight));
     layVines();
   }
 
@@ -171,12 +177,23 @@
   // how likely a spore landing on this pixel is to take root: none on dry ground, all on damp
   function takes(i) { return Math.max(0, Math.min(1, (habitat[i] - HABITAT) / HABITAT_SOFT)); }
 
-  // Now and then a spore lands somewhere new, on ground damp enough to hold it.
-  function seed(now) {
-    for (var k = 0; k < 40; k++) {
-      var x = (Math.random() * W) | 0, y = (Math.random() * H) | 0, i = y * W + x;
-      if (inClearing(x, y) || born[i] >= 0 || habitat[i] < HABITAT + HABITAT_SOFT) continue;
+  // Now and then a spore lands somewhere new, on seen ground damp enough to hold it (between rows
+  // y0 and y1 when given).
+  function seed(now, y0, y1, tuft) {
+    if (y0 === undefined) { y0 = 0; y1 = H; }
+    for (var k = 0; k < 60; k++) {
+      var x = (Math.random() * W) | 0, y = y0 + ((Math.random() * (y1 - y0)) | 0), i = y * W + x;
+      if (wokeAt[y] < 0 || inClearing(x, y) || born[i] >= 0 || habitat[i] < HABITAT + HABITAT_SOFT) continue;
       plant(x, y, now);
+      // a spore landing on newly seen ground starts as a small tuft, so it shows straight away
+      if (tuft) {
+        for (var dy = -1; dy <= 1; dy++) {
+          for (var dx = -1; dx <= 1; dx++) {
+            var tx = x + dx, ty = y + dy;
+            if (tx >= 0 && ty >= 0 && tx < W && ty < H && Math.random() < 0.6 && !inClearing(tx, ty) && born[ty * W + tx] < 0) plant(tx, ty, now);
+          }
+        }
+      }
       return;
     }
   }
@@ -188,12 +205,29 @@
     var tx = Math.round(x + Math.cos(a) * d), ty = Math.round(y + Math.sin(a) * d);
     if (tx < 0 || ty < 0 || tx >= W || ty >= H) return;
     var t = ty * W + tx;
-    if (born[t] >= 0 || inClearing(tx, ty)) return;
+    if (born[t] >= 0 || wokeAt[ty] < 0 || inClearing(tx, ty)) return;
     if (cleared[t] || Math.random() < takes(t)) plant(tx, ty, now);
   }
 
+  // Rows wake the first time they come into view. Each newly woken stretch gets its share of
+  // spores (START_SEEDS per screenful), so growth starts there while the visitor is looking.
+  function wake(now) {
+    var top = Math.max(0, Math.floor(window.scrollY / P)), bottom = Math.min(H, Math.ceil((window.scrollY + innerHeight) / P));
+    var first = -1, last = -1;
+    for (var y = top; y < bottom; y++) {
+      if (wokeAt[y] >= 0) continue;
+      wokeAt[y] = now; awakeRows++;
+      if (first < 0) first = y;
+      last = y;
+    }
+    if (first < 0) return;
+    seedDebt += (top === 0 && first === 0 ? START_SEEDS : WAKE_SEEDS) * (last - first + 1) / Math.max(1, innerHeight / P);
+    for (; seedDebt >= 1; seedDebt--) seed(now, first, last + 1, true);
+  }
+  function screensSeen() { return Math.max(1, awakeRows / Math.max(1, innerHeight / P)); }
+
   function grow(now, dt) {
-    if (now >= nextSeed) { seed(now); nextSeed = now + weibull(SEED_K, SEED_LAMBDA / screens); }
+    if (now >= nextSeed) { seed(now); nextSeed = now + weibull(SEED_K, SEED_LAMBDA / screensSeen()); }
     releaseDebt = Math.min(MAX_RELEASES, releaseDebt + mossCount * RELEASE_RATE * dt);
     for (; releaseDebt >= 1; releaseDebt--) {
       var i = mossList[(Math.random() * mossCount) | 0];
@@ -271,7 +305,9 @@
     }
     vines.forEach(function (v) {
       v.coil.c = now < v.coil.until ? Math.min(1, v.coil.c + dt / COIL_S) : Math.max(0, v.coil.c - dt / UNCOIL_S);
-      if (!v.coil.c && now >= v.start) {
+      var woke = v.pts.length ? wokeAt[v.pts[0][1]] : -1;
+      // a creeper down the page waits until its stretch has been seen for a while
+      if (!v.coil.c && now >= v.start && woke >= 0 && now >= woke + VINE_DELAY) {
         if (now >= v.rest && v.target - v.g < 0.05 && v.target < v.pts.length) {
           v.target = Math.min(v.pts.length, v.target + SPURT_MIN + Math.random() * (SPURT_MAX - SPURT_MIN));
           v.rest = now + REST_MIN + Math.random() * (REST_MAX - REST_MIN);
@@ -502,9 +538,9 @@
   function step(now, dt) {
     if (!started) {
       started = true; startedAt = now;
-      for (var k = 0; k < START_SEEDS * screens; k++) seed(now);
-      nextSeed = now + weibull(SEED_K, SEED_LAMBDA / screens);
+      nextSeed = now + weibull(SEED_K, SEED_LAMBDA);
     }
+    wake(now);
     grow(now, dt);
     tendVines(now, dt);
     tendFerns(now, dt);
@@ -536,6 +572,8 @@
 
   if (reduceMotion) {
     // no motion: grow a settled garden in one go and draw it once
+    wokeAt.fill(0); awakeRows = H;
+    for (var s0 = 0; s0 < START_SEEDS * H / Math.max(1, innerHeight / P); s0++) seed(0);
     for (var t = 0; t < STILL_SECONDS; t += 0.05) step(t, 0.05);
     ferns.forEach(function (f) { f.g = 1; });
     vines.forEach(function (v) { v.g = v.target = v.pts.length; v.marks.forEach(function (m) { m.seen = -99; }); });
