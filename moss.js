@@ -34,7 +34,12 @@
   var GROUP = 4, GROUP_R = 20;         // at most this many ferns within this many pixels
   var KIN = 0.45;                      // share of new fern sites looked for next to an existing fern
   var GROW_S = 3.5, CURL_S = 1.1;      // s for a fern to unfurl, and to curl back and sink
-  var VINE_SPEED = 2.5;                // creeper growth, pixels per second
+  var VINE_AFTER = 2, VINE_DELAY = 15; // creepers start this many s after this many ferns are fully up
+  var VINE_ANYWAY = 45;                // or this many s after the garden starts, if ferns have no room
+  var SPURT_MIN = 3, SPURT_MAX = 8;    // pixels a creeper sprouts in one spurt
+  var REST_MIN = 1.5, REST_MAX = 4.5;  // s it rests between spurts
+  var SPURT_EASE = 4;                  // how quickly a spurt settles (higher is snappier)
+  var BUD_S = 0.5, UNFURL_S = 1.3;     // s a new leaf spends as a bud, then half open
   var FOLD_REACH = 24;                 // pixels along a creeper that fold when touched
   var FOLD_WAVE = 0.03;                // s for the fold to travel one pixel along the stem
   var FOLD_S = 0.25, SHUT_S = 4, OPEN_S = 1.5;   // s to fold, to stay shut, and to open again
@@ -58,7 +63,7 @@
   var ferns = [], pending = [], vines = [];
   var C = {};
   var ground = [Math.random() * 100, Math.random() * 100];   // a different habitat map on every visit
-  var cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, visible = true;
+  var startedAt = 0, cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, visible = true;
 
   // ---- sampling and noise ----------------------------------------------------
 
@@ -204,7 +209,9 @@
         }
       }
       var old = vines[n];
+      if (old) marks.forEach(function (m) { if (m.i < old.g) m.seen = -99; });   // already grown: fully open
       return { pts: pts, along: along, inward: inward, marks: marks, g: old ? Math.min(old.g, pts.length) : 0,
+               target: old ? Math.min(old.target, pts.length) : 0, start: old ? old.start : Infinity, rest: old ? old.rest : 0,
                turn: along[0] * inward[1] - along[1] * inward[0],   // which way is "toward the page" when it coils
                coil: { k: 0, c: 0, until: 0 } };
     });
@@ -227,11 +234,25 @@
     v.coil.k = k;
     v.coil.until = now + COIL_S + COILED_S;
   }
+  // Creepers wait until a couple of ferns are up, then start one by one. Each grows in spurts:
+  // a few pixels that ease out and settle, then a rest. New leaves start as buds and open in turn.
+  var vinesAt = null;
   function tendVines(now, dt) {
+    if (vinesAt === null && (ferns.filter(function (f) { return f.g >= 1; }).length >= VINE_AFTER || now - startedAt > VINE_ANYWAY)) {
+      vinesAt = now + VINE_DELAY;
+      vines.forEach(function (v, n) { v.start = vinesAt + n * 3 + Math.random() * 3; });
+    }
     vines.forEach(function (v) {
       v.coil.c = now < v.coil.until ? Math.min(1, v.coil.c + dt / COIL_S) : Math.max(0, v.coil.c - dt / UNCOIL_S);
-      if (!v.coil.c) v.g = Math.min(v.pts.length, v.g + VINE_SPEED * dt);
+      if (!v.coil.c && now >= v.start) {
+        if (now >= v.rest && v.target - v.g < 0.05 && v.target < v.pts.length) {
+          v.target = Math.min(v.pts.length, v.target + SPURT_MIN + Math.random() * (SPURT_MAX - SPURT_MIN));
+          v.rest = now + REST_MIN + Math.random() * (REST_MAX - REST_MIN);
+        }
+        v.g += (v.target - v.g) * Math.min(1, dt * SPURT_EASE);
+      }
       v.marks.forEach(function (m) {
+        if (m.seen === undefined && m.i < v.g - 1) m.seen = now;
         if (now >= m.from && now < m.until) m.fold = Math.min(1, m.fold + dt / FOLD_S);
         else if (now >= m.until) m.fold = Math.max(0, m.fold - dt / OPEN_S);
       });
@@ -378,6 +399,7 @@
   };
   var HALF = { leaf: [[0, 1, 'vine-leaf'], [1, 1, 'vine-leaf'], [2, 1, 'vine-leaf-2']], small: [[0, 1, 'vine-leaf'], [1, 1, 'vine-leaf-2']], tendril: [[0, 1, 'vine'], [1, 1, 'vine']] };
   var SHUT = { leaf: [[1, 0, 'vine-leaf'], [2, 0, 'vine-leaf']], small: [[1, 0, 'vine-leaf']], tendril: [[0, 1, 'vine']] };
+  var BUD = { leaf: [[0, 1, 'vine-leaf-2']], small: [[0, 1, 'vine-leaf-2']], tendril: [[0, 1, 'vine']] };
 
   // Moss is a pale wash, dithered at its edges, with star-shaped sprigs over the settled middle.
   function draw(now) {
@@ -427,7 +449,8 @@
       v.marks.forEach(function (m) {
         if (m.i >= g - 1 || (c > 0.2 && m.i >= from)) return;   // leaves on the coiled part are tucked away
         var p = v.pts[m.i];
-        var shape = m.fold > 0.66 ? SHUT : m.fold > 0.2 ? HALF : LEAF;
+        var age = m.seen === undefined ? 0 : now - m.seen;
+        var shape = m.fold > 0.66 ? SHUT : m.fold > 0.2 ? HALF : age < BUD_S ? BUD : age < BUD_S + UNFURL_S ? HALF : LEAF;
         shape[m.kind].forEach(function (o) {
           plot(p[0] + v.along[0] * o[0] + v.inward[0] * o[1] * m.side, p[1] + v.along[1] * o[0] + v.inward[1] * o[1] * m.side, C[o[2]]);
         });
@@ -446,7 +469,7 @@
 
   function step(now, dt) {
     if (!started) {
-      started = true;
+      started = true; startedAt = now;
       for (var k = 0; k < START_SEEDS; k++) seed(now);
       nextSeed = now + weibull(SEED_K, SEED_LAMBDA);
     }
@@ -475,6 +498,7 @@
     // no motion: grow a settled garden in one go and draw it once
     for (var t = 0; t < STILL_SECONDS; t += 0.05) step(t, 0.05);
     ferns.forEach(function (f) { f.g = 1; });
+    vines.forEach(function (v) { v.g = v.target = v.pts.length; v.marks.forEach(function (m) { m.seen = -99; }); });
     draw(STILL_SECONDS);
   } else {
     // skip drawing while the garden is scrolled out of view
