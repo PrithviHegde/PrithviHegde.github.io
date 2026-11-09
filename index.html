@@ -9,31 +9,36 @@
   <meta property="og:description" content="MS Data Science at the University of Washington. Machine learning, human decision-making and explainable AI, especially in finance.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='2' height='1' fill='%237f9a6c'/%3E%3Crect x='0' y='2' width='4' height='2' fill='%233d5f40'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%23a6c290'/%3E%3C/svg%3E">
+  <script>
+    // apply a saved theme before the page paints
+    try { if (localStorage.getItem('theme') === 'sand') document.documentElement.dataset.theme = 'sand'; } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
   <style>
-    /* Paper and moss: warm off-white, moss-green links. Every text colour passes WCAG AA in both themes. */
+    /* Dark bark by default; the toggle switches to sand with a pixel paper grain.
+       Every text colour passes WCAG AA in both, including over the grain. */
     :root {
-      --bg: #f5f3ec; --text: #1f2420; --muted: #5a6156; --accent: #3d5f40; --line: #dcd8cc;
-      --moss-1: #c5d3b4; --moss-2: #9fb38c; --moss-3: #6f8a62;
-      --fern-stem: #2a432c; --fern-leaf: #3b6438; --fern-tip: #7fa968;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
-        --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
-        --fern-stem: #6c8c5c; --fern-leaf: #8db077; --fern-tip: #c3d9a9;
-      }
-    }
-    :root[data-theme="dark"] {
-      --bg: #141713; --text: #e2e5dc; --muted: #9ba394; --accent: #a6c290; --line: #2b302a;
-      --moss-1: #2c3a27; --moss-2: #3e5235; --moss-3: #5b7550;
+      color-scheme: dark;
+      --bg: #1c1914; --text: #ebe4d6; --muted: #aca290; --accent: #a9c48f; --line: #342e25;
+      --wash-0: #25261b; --wash-1: #2b2f20;
+      --sprig: #6f8a5c; --sprig-arm: #4b5f3c; --sprig-dot: #3d4c32;
+      --vine: #56693f; --vine-leaf: #687f4f; --vine-leaf-2: #7b925f;
       --fern-stem: #6c8c5c; --fern-leaf: #8db077; --fern-tip: #c3d9a9;
+      --grain: none;
     }
-
+    :root[data-theme="sand"] {
+      color-scheme: light;
+      --bg: #e7ddcc; --text: #1f2420; --muted: #544c40; --accent: #355437; --line: #d6c7af;
+      --wash-0: #d8d9c0; --wash-1: #cfd3b5;
+      --sprig: #7f9a6c; --sprig-arm: #a9bd94; --sprig-dot: #b8c9a3;
+      --vine: #839c71; --vine-leaf: #a6b98f; --vine-leaf-2: #bccaa5;
+      --fern-stem: #1d301f; --fern-leaf: #2a4a2a; --fern-tip: #5d8a4c;
+      --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' shape-rendering='crispEdges'%3E%3Crect x='32' y='0' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='84' y='0' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='64' y='4' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='152' y='4' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='104' y='8' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='40' y='12' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='56' y='12' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='128' y='12' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='148' y='12' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='76' y='16' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='80' y='16' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='108' y='20' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='52' y='24' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='64' y='24' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='156' y='28' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='8' y='32' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='48' y='32' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='60' y='36' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='68' y='36' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='88' y='40' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='112' y='40' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='128' y='40' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='132' y='40' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='32' y='44' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='100' y='44' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='140' y='44' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='92' y='48' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='152' y='48' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='76' y='52' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='80' y='52' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='112' y='52' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='12' y='56' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='84' y='56' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='108' y='56' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='156' y='60' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='0' y='64' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='20' y='64' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='88' y='64' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='156' y='64' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='44' y='68' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='76' y='68' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='76' y='72' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='100' y='72' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='144' y='72' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='12' y='76' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='28' y='76' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='32' y='76' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='88' y='76' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='108' y='76' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='48' y='80' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='64' y='84' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='0' y='88' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='120' y='88' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='152' y='88' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='0' y='96' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='12' y='96' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='64' y='96' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='124' y='96' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='112' y='100' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='68' y='104' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='100' y='104' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='104' y='104' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='140' y='104' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='144' y='104' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='64' y='108' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='104' y='108' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='128' y='108' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='16' y='112' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='32' y='112' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='68' y='112' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='132' y='112' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='84' y='116' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='104' y='116' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='108' y='116' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='20' y='120' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='72' y='120' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='112' y='120' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='0' y='124' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='16' y='124' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='124' y='124' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='20' y='132' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='40' y='136' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='144' y='136' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='136' y='140' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='52' y='144' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='56' y='144' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='48' y='148' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='96' y='148' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='132' y='148' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='88' y='152' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='104' y='152' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='112' y='152' width='4' height='4' fill='%23dacebb'/%3E%3Crect x='28' y='156' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='96' y='156' width='4' height='4' fill='%23efe9de'/%3E%3Crect x='120' y='156' width='4' height='4' fill='%23dacebb'/%3E%3C/svg%3E");
+    }
     :root {
-      --serif: "Source Serif 4", Georgia, serif;
+      --serif: "EB Garamond", Garamond, Georgia, serif;
       --sans: Inter, -apple-system, "Segoe UI", sans-serif;
       --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
     }
@@ -41,33 +46,44 @@
     html { -webkit-text-size-adjust: 100%; }
     body {
       margin: 0;
-      background: var(--bg);
+      background: var(--bg) var(--grain) repeat;
       color: var(--text);
       font: 400 1rem/1.65 var(--sans);
       -webkit-font-smoothing: antialiased;
     }
-    .moss { position: fixed; top: 0; left: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
-    main { position: relative; z-index: 1; max-width: 44rem; margin: 0 auto; padding: 5.5rem 1rem 4rem; }
     a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
     a:hover { text-decoration-thickness: 2px; }
-    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
     p { margin: 0 0 1rem; }
 
-    /* Header */
-    h1 {
-      font: 600 2.6rem/1.1 var(--serif);
-      letter-spacing: -0.01em;
-      margin: 0 0 0.9rem;
+    /* The garden: moss, creepers and ferns at the top, with the intro in a clearing */
+    .garden {
+      position: relative;
+      height: 82svh; min-height: 440px;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
     }
-    .pitch { font-size: 1.15rem; line-height: 1.55; max-width: 36rem; margin-bottom: 1.4rem; }
+    .garden canvas { position: absolute; top: 0; left: 0; image-rendering: pixelated; }
+    .intro {
+      position: absolute;
+      left: max(1.5rem, calc(50% - 22rem));
+      bottom: 3.2rem;
+      width: min(34rem, calc(100% - 3rem));
+    }
+    .hint { font: 400 0.8rem/1.7 var(--mono); color: var(--muted); margin: 0 0 1.4rem; }
+    h1 { font: 600 3rem/1.05 var(--serif); margin: 0 0 0.8rem; }
+    .pitch { font-size: 1.1rem; line-height: 1.55; margin: 0 0 1.1rem; }
     .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
-    .now {
-      margin-top: 2.2rem;
-      padding-left: 0.9rem;
-      border-left: 2px solid var(--moss-2);
-      color: var(--muted);
-      font-size: 0.95rem;
+    .theme {
+      position: absolute; top: 1.1rem; right: 1.1rem;
+      width: 1.75rem; height: 1.75rem; padding: 0;
+      border: 1px solid var(--muted); border-radius: 50%;
+      background: linear-gradient(90deg, #1c1914 50%, #e7ddcc 50%);
+      cursor: pointer;
     }
+
+    main { max-width: 44rem; margin: 0 auto; padding: 3.5rem 1rem 4rem; }
+    .now { padding-left: 0.9rem; border-left: 2px solid var(--sprig); color: var(--muted); font-size: 0.95rem; }
     .now p { margin: 0; }
 
     /* Sections: small label, then entries in a date | content grid */
@@ -83,8 +99,8 @@
     }
     .entry { display: grid; grid-template-columns: 8.5rem 1fr; gap: 0 1.5rem; margin-bottom: 1.9rem; }
     .entry:last-child { margin-bottom: 0; }
-    .when { font: 400 0.8rem/1.9 var(--mono); color: var(--muted); white-space: nowrap; }
-    h3 { font: 600 1.15rem/1.35 var(--serif); margin: 0 0 0.15rem; }
+    .when { font: 400 0.8rem/2.1 var(--mono); color: var(--muted); white-space: nowrap; }
+    h3 { font: 600 1.35rem/1.3 var(--serif); margin: 0 0 0.15rem; }
     .role { color: var(--muted); font-size: 0.95rem; margin: 0 0 0.5rem; }
     .entry p:last-child { margin-bottom: 0; }
     .entry ul { margin: 0; padding-left: 1.1rem; }
@@ -104,7 +120,7 @@
       border-radius: 3px;
       padding: 0.25rem 0.4rem;
       margin-left: 0.4rem;
-      vertical-align: 0.2em;
+      vertical-align: 0.25em;
     }
     .project-links { font-size: 0.95rem; }
     .cite { font-size: 0.95rem; }
@@ -121,17 +137,18 @@
     footer a { color: var(--muted); }
 
     @media (max-width: 40rem) {
-      main { padding-top: 3.5rem; }
-      h1 { font-size: 2.15rem; }
+      h1 { font-size: 2.4rem; }
+      .intro { bottom: 2rem; }
       .entry { grid-template-columns: 1fr; }
       .when { line-height: 1.6; margin-bottom: 0.2rem; }
     }
-
   </style>
 </head>
 <body>
-  <main>
-    <header>
+  <header class="garden">
+    <button class="theme" type="button" aria-label="Switch to the sand theme"></button>
+    <div class="intro">
+      <p class="hint">if you stay still long enough,<br>things begin to grow</p>
       <h1>Prithvi Hegde</h1>
       <p class="pitch">MS Data Science student at the University of Washington. I work where machine learning meets human decision-making, especially models that can explain themselves, and especially in finance.</p>
       <ul class="links">
@@ -141,10 +158,13 @@
         <li><a href="https://github.com/PrithviHegde">GitHub</a></li>
         <li><a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></li>
       </ul>
-      <div class="now">
-        <p>Open to internships and research roles in data science, machine learning, AI and quantitative finance.</p>
-      </div>
-    </header>
+    </div>
+  </header>
+
+  <main>
+    <div class="now">
+      <p>Open to internships and research roles in data science, machine learning, AI and quantitative finance.</p>
+    </div>
 
     <section id="about" aria-labelledby="about-h">
       <h2 id="about-h">About</h2>
@@ -252,6 +272,21 @@
       <span><a href="mailto:prithvihegde123@gmail.com">Email</a> &middot; <a href="https://github.com/PrithviHegde">GitHub</a> &middot; <a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></span>
     </footer>
   </main>
+  <script>
+    // the theme toggle: dark bark by default, sand with grain on request; remembered per visitor
+    (function () {
+      var root = document.documentElement, button = document.querySelector('.theme');
+      function label() {
+        button.setAttribute('aria-label', root.dataset.theme === 'sand' ? 'Switch to the dark theme' : 'Switch to the sand theme');
+      }
+      button.addEventListener('click', function () {
+        if (root.dataset.theme === 'sand') delete root.dataset.theme; else root.dataset.theme = 'sand';
+        try { localStorage.setItem('theme', root.dataset.theme || 'dark'); } catch (e) {}
+        label();
+      });
+      label();
+    })();
+  </script>
   <script src="moss.js" defer></script>
 </body>
 </html>
