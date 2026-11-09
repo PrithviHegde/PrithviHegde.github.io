@@ -1,7 +1,8 @@
 // The moss garden at the top of the page. The model is written up at github.com/PrithviHegde/moss:
 // spores travel lognormal distances, and the waits for new patches and for ferns are Weibull.
 //
-// Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
+// The garden fills the top of the page and carries on down the side margins, stopping well short
+// of the text. Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
 // habitat map marks as damp enough, so it creeps in fingers and patches rather than circles.
 // Ferns rise from settled moss, more often next to other ferns, leaning whichever way they like.
 // Creepers grow along the edges. The cursor only disturbs: it clears moss (which grows back),
@@ -13,19 +14,22 @@
   var garden = document.querySelector('.garden');
   if (!garden) return;
   var intro = garden.querySelector('.intro');
+  var main = document.querySelector('main');
 
   var P = 4;                           // css px per pixel; moss, creepers and ferns share this grid
 
   // The model
   var SPORE_S = 1.5, SPORE_MEAN = 1;   // lognormal spore distance, in pixels
   var SPORE_MU = Math.log(SPORE_MEAN) - SPORE_S * SPORE_S / 2;
-  var SEED_K = 2, SEED_LAMBDA = 8;     // Weibull wait between spores landing somewhere new, seconds
+  var SEED_K = 2, SEED_LAMBDA = 5;     // Weibull wait between spores landing somewhere new (per screenful), s
   var FERN_K = 3, FERN_LAMBDA = 6;     // Weibull wait before a fern rises from settled moss, seconds
 
   // Pacing and look (tuned by eye)
   var START_SEEDS = 3;
-  var RELEASE_RATE = 1.5;              // spores released per moss pixel per second
-  var MAX_RELEASES = 1500;             // per frame, to bound the work on big screens
+  var RELEASE_RATE = 2.5;              // spores released per moss pixel per second
+  var MAX_RELEASES = 2500;             // per frame, to bound the work on big pages
+  var MARGIN = 12;                     // pixels kept bare between the side gardens and the text column
+  var MIN_GUTTER = 14;                 // pixels: a side margin narrower than this grows nothing
   var HABITAT = 0.57, HABITAT_SOFT = 0.1;    // habitat score where moss starts, and fully, taking root
   var BRUSH = 1.6;                     // pixels cleared either side of the cursor's path
   var SPROUT = 1.2;                    // s before a moss pixel can carry a sprig
@@ -51,7 +55,8 @@
 
   var canvas = document.createElement('canvas');
   canvas.setAttribute('aria-hidden', 'true');
-  garden.insertBefore(canvas, garden.firstChild);
+  canvas.className = 'garden-canvas';
+  document.body.insertBefore(canvas, document.body.firstChild);
   var ctx = canvas.getContext('2d');
 
   var W = 0, H = 0, img, buf;
@@ -60,10 +65,11 @@
   var habitat = new Float32Array(0);   // how damp each pixel's ground is, 0 to 1
   var mossList = new Int32Array(0), mossAt = new Int32Array(0), mossCount = 0;   // moss pixels, for picking one at random
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };   // the intro text, in pixels
+  var heroH = 0, gutL = -1, gutR = 1e9;            // the top garden's height; where the text column's bare band starts and ends
   var ferns = [], pending = [], vines = [];
   var C = {};
   var ground = [Math.random() * 100, Math.random() * 100];   // a different habitat map on every visit
-  var startedAt = 0, cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, visible = true;
+  var startedAt = 0, cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, screens = 1;
 
   // ---- sampling and noise ----------------------------------------------------
 
@@ -95,10 +101,14 @@
     });
   }
 
+  // The canvas covers the whole page. It is sized from the content (never from the page's own
+  // scroll height, which would include the canvas and could only grow), rounded down so it never
+  // adds scrolling of its own.
   function resize() {
-    var r = garden.getBoundingClientRect();
+    var page = document.documentElement, sy = window.scrollY;
+    var pageH = main.getBoundingClientRect().bottom + sy;
     // at least 1x1: a window can report zero size while it loads in the background
-    var w = Math.max(1, Math.ceil(r.width / P)), h = Math.max(1, Math.ceil(r.height / P));
+    var w = Math.max(1, Math.floor(page.clientWidth / P)), h = Math.max(1, Math.floor(pageH / P));
     if (w !== W || h !== H) {
       var nb = new Float32Array(w * h).fill(-1), nc = new Uint8Array(w * h);
       for (var y = 0; y < Math.min(h, H); y++) {
@@ -121,16 +131,27 @@
     }
     var ir = intro.getBoundingClientRect();
     zone = {
-      x0: Math.floor((ir.left - r.left - 16) / P), y0: Math.floor((ir.top - r.top - 16) / P),
-      x1: Math.ceil((ir.right - r.left + 16) / P), y1: Math.ceil((ir.bottom - r.top + 16) / P)
+      x0: Math.floor((ir.left - 16) / P), y0: Math.floor((ir.top + sy - 16) / P),
+      x1: Math.ceil((ir.right + 16) / P), y1: Math.ceil((ir.bottom + sy + 16) / P)
     };
+    heroH = Math.floor((garden.getBoundingClientRect().bottom + sy) / P);
+    zone.y1 = Math.max(zone.y1, heroH + 1);   // the clearing runs on down into the bare text column
+    // below the top garden, only the side margins grow anything, and not too close to the text
+    var mr = main.getBoundingClientRect(), pad = parseFloat(getComputedStyle(main).paddingLeft) || 0;
+    gutL = Math.floor((mr.left + pad) / P) - MARGIN;
+    gutR = Math.ceil((mr.right - pad) / P) + MARGIN;
+    if (gutL < MIN_GUTTER) gutL = -1;
+    if (W - gutR < MIN_GUTTER) gutR = W + 1;
+    screens = Math.max(1, (H * P) / Math.max(1, innerHeight));
     layVines();
   }
 
-  // the intro text is a clearing, with a ragged edge
+  // Bare ground: the intro text's clearing at the top, and below the top garden everything but
+  // the side margins. Both have a ragged edge.
   function inClearing(x, y) {
     var m = hash(x, y, 5) * 3;
-    return x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - m && y < zone.y1 + m;
+    if (x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - m && y < zone.y1 + m) return true;
+    return y >= heroH && x > gutL - m && x < gutR + m;
   }
 
   // ---- moss ----------------------------------------------------------------------
@@ -172,7 +193,7 @@
   }
 
   function grow(now, dt) {
-    if (now >= nextSeed) { seed(now); nextSeed = now + weibull(SEED_K, SEED_LAMBDA); }
+    if (now >= nextSeed) { seed(now); nextSeed = now + weibull(SEED_K, SEED_LAMBDA / screens); }
     releaseDebt = Math.min(MAX_RELEASES, releaseDebt + mossCount * RELEASE_RATE * dt);
     for (; releaseDebt >= 1; releaseDebt--) {
       var i = mossList[(Math.random() * mossCount) | 0];
@@ -185,19 +206,25 @@
   // Each creeper follows one edge, drifting 1 to 4 pixels from it, with leaves at uneven spacing
   // (mostly toward the page) and the odd curled tendril. It stops short of the text.
   function layVines() {
+    var below = H - heroH;
     var specs = [
-      { from: 'top-left', len: 0.38 }, { from: 'top-right', len: 0.24 },
-      { from: 'left-bottom', len: 0.45 }, { from: 'right-top', len: 0.3 }
+      { from: 'top-left', len: 0.38 * W }, { from: 'top-right', len: 0.24 * W },
+      { from: 'left-bottom', len: 0.45 * heroH }, { from: 'right-top', len: 0.3 * heroH },
+      // down the page edges, beside the content
+      { from: 'left-page', at: heroH + 6, len: Math.min(0.4 * below, 220) },
+      { from: 'right-page', at: heroH + 30, len: Math.min(0.3 * below, 160) }
     ];
     vines = specs.map(function (s, n) {
-      var horizontal = s.from.indexOf('top') === 0, L = Math.round((horizontal ? W : H) * s.len);
+      var horizontal = s.from.indexOf('top') === 0, L = Math.max(0, Math.round(s.len));
       var along = s.from === 'top-left' ? [1, 0] : s.from === 'top-right' ? [-1, 0] : s.from === 'left-bottom' ? [0, -1] : [0, 1];
-      var inward = horizontal ? [0, 1] : s.from === 'left-bottom' ? [1, 0] : [-1, 0];
+      var inward = horizontal ? [0, 1] : s.from.indexOf('left') === 0 ? [1, 0] : [-1, 0];
       var pts = [], marks = [], lastLeaf = -9;
       for (var i = 0; i < L; i++) {
         var off = 1 + Math.round(noise(i / 9, n * 7 + 3) * 3);
         var base = s.from === 'top-left' ? [i, 0] : s.from === 'top-right' ? [W - 1 - i, 0]
-          : s.from === 'left-bottom' ? [0, H - 1 - i] : [W - 1, i];
+          : s.from === 'left-bottom' ? [0, Math.floor(heroH) - 1 - i] : s.from === 'right-top' ? [W - 1, i]
+          : s.from === 'left-page' ? [0, Math.floor(s.at) + i] : [W - 1, Math.floor(s.at) + i];
+        if (base[1] >= H) break;
         var p = [base[0] + inward[0] * off, base[1] + inward[1] * off];
         if (inClearing(p[0], p[1])) break;
         pts.push(p);
@@ -290,7 +317,7 @@
 
   function onPointer(e) {
     if (e.type === 'pointerdown') cursor = null;
-    var r = garden.getBoundingClientRect();
+    var r = canvas.getBoundingClientRect();
     var p = { x: (e.clientX - r.left) / P, y: (e.clientY - r.top) / P };
     if (p.x < 0 || p.y < 0 || p.x > W || p.y > H) { cursor = null; return; }
     if (e.type === 'pointerdown') {
@@ -327,8 +354,9 @@
         for (var dx = -1; dx <= 1 && ok; dx++) ok = isMoss(x + dx, y + dy) && now - born[(y + dy) * W + x + dx] >= MATURE / 2;
       }
       if (!ok) continue;
-      var m = len;   // a fern can lean its full length to either side
-      if (x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - len * 0.4 && y - len < zone.y1) continue;
+      // a fern can lean its full length to either side: keep all of that reach on growing ground
+      if (inClearing(x - len, y - len * 0.5) || inClearing(x + len, y - len * 0.5) || inClearing(x, y - len) ||
+          inClearing(x - len, y) || inClearing(x + len, y)) continue;
       var all = ferns.concat(pending), near = 0;
       if (all.some(function (f) { var d = Math.hypot(f.x - x, f.y - y); if (d < GROUP_R) near++; return d < FERN_GAP; })) continue;
       if (near >= GROUP - 1) continue;   // groups stay small
@@ -402,10 +430,14 @@
   var BUD = { leaf: [[0, 1, 'vine-leaf-2']], small: [[0, 1, 'vine-leaf-2']], tendril: [[0, 1, 'vine']] };
 
   // Moss is a pale wash, dithered at its edges, with star-shaped sprigs over the settled middle.
-  function draw(now) {
-    buf.fill(0);
+  // Only the rows on screen are drawn (all of them when `whole` is set).
+  function draw(now, whole) {
+    var top = whole ? 0 : Math.max(0, Math.floor(window.scrollY / P) - 2);
+    var bottom = whole ? H : Math.min(H, Math.ceil((window.scrollY + innerHeight) / P) + 2);
+    if (bottom <= top) return;
+    buf.fill(0, top * W, bottom * W);
     var x, y, i;
-    for (y = 0; y < H; y++) {
+    for (y = top; y < bottom; y++) {
       for (x = 0; x < W; x++) {
         i = y * W + x;
         if (born[i] < 0) continue;
@@ -414,7 +446,7 @@
         buf[i] = noise(x / 4, y / 3) > 0.55 ? C['wash-1'] : C['wash-0'];
       }
     }
-    for (y = 1; y < H - 1; y++) {
+    for (y = Math.max(1, top); y < Math.min(H - 1, bottom); y++) {
       for (x = 1; x < W - 1; x++) {
         i = y * W + x;
         if (born[i] < 0 || now - born[i] < SPROUT) continue;
@@ -462,7 +494,7 @@
       }
     });
     ferns.forEach(function (f) { frond(f.x, f.y, f.ang, f.len, 1 - Math.pow(1 - f.g, 2.2), 0, f.sign, f); });
-    ctx.putImageData(img, 0, 0);
+    ctx.putImageData(img, 0, 0, 0, top, W, bottom - top);
   }
 
   // ---- loop ----------------------------------------------------------------------------
@@ -470,8 +502,8 @@
   function step(now, dt) {
     if (!started) {
       started = true; startedAt = now;
-      for (var k = 0; k < START_SEEDS; k++) seed(now);
-      nextSeed = now + weibull(SEED_K, SEED_LAMBDA);
+      for (var k = 0; k < START_SEEDS * screens; k++) seed(now);
+      nextSeed = now + weibull(SEED_K, SEED_LAMBDA / screens);
     }
     grow(now, dt);
     tendVines(now, dt);
@@ -483,31 +515,37 @@
     var now = ms / 1000, dt = Math.min(0.05, Math.max(0, now - last));
     last = now;
     step(now, dt);
-    if (visible) draw(now);
+    draw(now);
     requestAnimationFrame(frame);
   }
 
   readColors();
   resize();
   // the theme toggle changes data-theme on <html>; pick up the new colours when it does
-  new MutationObserver(function () { readColors(); draw(reduceMotion ? STILL_SECONDS : last); })
+  new MutationObserver(function () { readColors(); draw(reduceMotion ? STILL_SECONDS : last, reduceMotion); })
     .observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-  addEventListener('resize', function () { resize(); if (reduceMotion) draw(STILL_SECONDS); });
+  // the page changes height as fonts load and on resize
+  var queued = false;
+  function refit() {
+    if (queued) return;
+    queued = true;
+    setTimeout(function () { queued = false; resize(); if (reduceMotion) draw(STILL_SECONDS, true); }, 100);
+  }
+  addEventListener('resize', refit);
+  if ('ResizeObserver' in window) new ResizeObserver(refit).observe(main);
 
   if (reduceMotion) {
     // no motion: grow a settled garden in one go and draw it once
     for (var t = 0; t < STILL_SECONDS; t += 0.05) step(t, 0.05);
     ferns.forEach(function (f) { f.g = 1; });
     vines.forEach(function (v) { v.g = v.target = v.pts.length; v.marks.forEach(function (m) { m.seen = -99; }); });
-    draw(STILL_SECONDS);
+    draw(STILL_SECONDS, true);
   } else {
-    // skip drawing while the garden is scrolled out of view
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver(function (entries) { visible = entries[0].isIntersecting; }).observe(garden);
-    }
     addEventListener('pointermove', onPointer, { passive: true });
     addEventListener('pointerdown', onPointer, { passive: true });
-    garden.addEventListener('pointerleave', function () { cursor = null; });
+    root.addEventListener('pointerleave', function () { cursor = null; });
+    // scrolling moves the page under a still cursor; that isn't a swipe, so start afresh
+    addEventListener('scroll', function () { cursor = null; }, { passive: true });
     requestAnimationFrame(frame);
   }
 })();
