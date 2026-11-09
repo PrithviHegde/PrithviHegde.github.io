@@ -92,7 +92,8 @@
   // ---- grid --------------------------------------------------------------
 
   function resize() {
-    var w = Math.ceil(innerWidth / CELL), h = Math.ceil(innerHeight / CELL);
+    // at least 1x1: a window can report zero size while it loads in the background
+    var w = Math.max(1, Math.ceil(innerWidth / CELL)), h = Math.max(1, Math.ceil(innerHeight / CELL));
     if (w !== W || h !== H) {
       var nb = new Float32Array(w * h).fill(-1), nc = new Uint8Array(w * h);
       for (var y = 0; y < Math.min(h, H); y++) {
