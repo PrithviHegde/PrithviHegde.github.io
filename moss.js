@@ -1,10 +1,12 @@
 // The moss garden at the top of the page. The model is written up at github.com/PrithviHegde/moss:
-// spores travel lognormal distances, and the waits for new colonies and for ferns are Weibull.
+// spores travel lognormal distances, and the waits for new patches and for ferns are Weibull.
 //
-// Moss colonies land at random spots and spread on their own, up to a cap that keeps the garden
-// sparse. Creepers grow along the edges. Ferns rise from settled moss, away from the text. The
-// cursor only disturbs: it clears moss (which grows back) and curls ferns back into fiddleheads,
-// and creepers fold their leaves shut like a touch-me-not, then slowly open again.
+// Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
+// habitat map marks as damp enough, so it creeps in fingers and patches rather than circles.
+// Ferns rise from settled moss, more often next to other ferns, leaning whichever way they like.
+// Creepers grow along the edges. The cursor only disturbs: it clears moss (which grows back),
+// curls ferns back into fiddleheads, and makes creepers fold their leaves like a touch-me-not;
+// a click rolls a creeper up into a coil for a while.
 (function () {
   'use strict';
 
@@ -17,27 +19,27 @@
   // The model
   var SPORE_S = 1.5, SPORE_MEAN = 1;   // lognormal spore distance, in pixels
   var SPORE_MU = Math.log(SPORE_MEAN) - SPORE_S * SPORE_S / 2;
-  var COLONY_K = 2, COLONY_LAMBDA = 5; // Weibull wait between new colonies landing, seconds
+  var SEED_K = 2, SEED_LAMBDA = 8;     // Weibull wait between spores landing somewhere new, seconds
   var FERN_K = 3, FERN_LAMBDA = 6;     // Weibull wait before a fern rises from settled moss, seconds
 
   // Pacing and look (tuned by eye)
-  var START_COLONIES = 3;
-  var COVER_MAX = 0.12;                // moss stops spreading once it covers this share of open ground
-  var REACH_GROWTH = 0.8;              // pixels per second a colony widens
-  var REACH_MIN = 6, REACH_MAX = 15;   // pixels: each colony's final size is drawn between these
-  var RELEASES_PER_CELL = 3;           // spore releases per pixel of colony area per second
-  var REGROW_PER_S = 2500;             // samples per second that let moss creep back over cleared ground
-  var OUTPOST_TAKE = 0.004;            // chance a spore landing beyond its colony's outline takes root
+  var START_SEEDS = 3;
+  var RELEASE_RATE = 1.5;              // spores released per moss pixel per second
+  var MAX_RELEASES = 1500;             // per frame, to bound the work on big screens
+  var HABITAT = 0.57, HABITAT_SOFT = 0.1;    // habitat score where moss starts, and fully, taking root
   var BRUSH = 1.6;                     // pixels cleared either side of the cursor's path
   var SPROUT = 1.2;                    // s before a moss pixel can carry a sprig
   var MATURE = 3;                      // s undisturbed before moss can carry a fern
-  var MAX_FERNS = 6, FERN_GAP = 18;    // ferns at once, and their spacing in pixels
+  var MAX_FERNS = 12, FERN_GAP = 9;    // ferns at once, and their spacing in pixels
+  var GROUP = 4, GROUP_R = 20;         // at most this many ferns within this many pixels
+  var KIN = 0.45;                      // share of new fern sites looked for next to an existing fern
   var GROW_S = 3.5, CURL_S = 1.1;      // s for a fern to unfurl, and to curl back and sink
   var VINE_SPEED = 2.5;                // creeper growth, pixels per second
   var FOLD_REACH = 24;                 // pixels along a creeper that fold when touched
   var FOLD_WAVE = 0.03;                // s for the fold to travel one pixel along the stem
   var FOLD_S = 0.25, SHUT_S = 4, OPEN_S = 1.5;   // s to fold, to stay shut, and to open again
-  var STILL_SECONDS = 45;              // with reduced motion: how long to grow before drawing once
+  var COIL_S = 0.6, COILED_S = 5, UNCOIL_S = 2;  // s to roll up after a click, to stay rolled, to unroll
+  var STILL_SECONDS = 70;              // with reduced motion: how long to grow before drawing once
 
   var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.documentElement;
@@ -50,11 +52,13 @@
   var W = 0, H = 0, img, buf;
   var born = new Float32Array(0);      // when each pixel's moss took root (s), or -1 for bare ground
   var cleared = new Uint8Array(0);     // 1 where the cursor cleared moss that may grow back
-  var mossCount = 0, openCount = 1;
+  var habitat = new Float32Array(0);   // how damp each pixel's ground is, 0 to 1
+  var mossList = new Int32Array(0), mossAt = new Int32Array(0), mossCount = 0;   // moss pixels, for picking one at random
   var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };   // the intro text, in pixels
-  var colonies = [], ferns = [], pending = [], vines = [];
+  var ferns = [], pending = [], vines = [];
   var C = {};
-  var cursor = null, nextColony = 0, nextScout = 0, started = false, visible = true;
+  var ground = [Math.random() * 100, Math.random() * 100];   // a different habitat map on every visit
+  var cursor = null, nextSeed = 0, nextScout = 0, releaseDebt = 0, started = false, visible = true;
 
   // ---- sampling and noise ----------------------------------------------------
 
@@ -101,15 +105,20 @@
       canvas.style.height = H * P + 'px';
       img = ctx.createImageData(W, H);
       buf = new Uint32Array(img.data.buffer);
-      mossCount = 0;
-      for (var i = 0; i < born.length; i++) if (born[i] >= 0) mossCount++;
+      habitat = new Float32Array(W * H);
+      for (var hy = 0; hy < H; hy++) {
+        for (var hx = 0; hx < W; hx++) {
+          habitat[hy * W + hx] = 0.65 * noise(hx / 22 + ground[0], hy / 16 + ground[1]) + 0.35 * noise(hx / 7 + ground[1], hy / 7 + ground[0]);
+        }
+      }
+      mossList = new Int32Array(W * H); mossAt = new Int32Array(W * H).fill(-1); mossCount = 0;
+      for (var i = 0; i < born.length; i++) if (born[i] >= 0) { mossList[mossCount] = i; mossAt[i] = mossCount++; }
     }
     var ir = intro.getBoundingClientRect();
     zone = {
       x0: Math.floor((ir.left - r.left - 16) / P), y0: Math.floor((ir.top - r.top - 16) / P),
       x1: Math.ceil((ir.right - r.left + 16) / P), y1: Math.ceil((ir.bottom - r.top + 16) / P)
     };
-    openCount = Math.max(1, W * H - Math.max(0, zone.x1 - zone.x0) * Math.max(0, zone.y1 - zone.y0));
     layVines();
   }
 
@@ -125,62 +134,44 @@
   function plant(x, y, now) {
     var i = y * W + x;
     if (born[i] >= 0) return;
-    born[i] = now; cleared[i] = 0; mossCount++;
+    born[i] = now; cleared[i] = 0;
+    mossList[mossCount] = i; mossAt[i] = mossCount++;
   }
+  function unplant(i) {
+    var j = mossAt[i], lastI = mossList[--mossCount];
+    mossList[j] = lastI; mossAt[lastI] = j; mossAt[i] = -1;
+    born[i] = -1; cleared[i] = 1;
+  }
+  // how likely a spore landing on this pixel is to take root: none on dry ground, all on damp
+  function takes(i) { return Math.max(0, Math.min(1, (habitat[i] - HABITAT) / HABITAT_SOFT)); }
 
-  // A colony lands at a random open spot, then widens to its own size with a lobed outline.
-  function startColony(now) {
-    for (var k = 0; k < 30; k++) {
-      var x = 4 + Math.random() * (W - 8), y = 4 + Math.random() * (H - 8);
-      if (inClearing(Math.round(x), Math.round(y))) continue;
-      var crowded = colonies.some(function (c) { return Math.hypot(c.x - x, c.y - y) < c.max + 6; });
-      if (crowded) continue;
-      colonies.push({ x: x, y: y, start: now, max: REACH_MIN + Math.random() * (REACH_MAX - REACH_MIN), seed: Math.random() * 90 });
-      plant(Math.round(x), Math.round(y), now);
+  // Now and then a spore lands somewhere new, on ground damp enough to hold it.
+  function seed(now) {
+    for (var k = 0; k < 40; k++) {
+      var x = (Math.random() * W) | 0, y = (Math.random() * H) | 0, i = y * W + x;
+      if (inClearing(x, y) || born[i] >= 0 || habitat[i] < HABITAT + HABITAT_SOFT) continue;
+      plant(x, y, now);
       return;
     }
   }
-  function reachOf(c, now) { return Math.min(c.max, 1.5 + (now - c.start) * REACH_GROWTH); }
-  function lobed(c, reach, x, y) {
-    var a = Math.atan2(y - c.y, x - c.x);
-    return reach * (0.7 + 0.6 * noise(c.seed + Math.cos(a) * 1.6, c.seed + Math.sin(a) * 1.6));
-  }
 
-  // One spore: a lognormal distance in a uniform direction. Inside its colony's outline it takes
-  // root; beyond it, only rarely (the far outposts the fat tail makes). Ground the cursor cleared
-  // always takes moss back. The distance itself is never altered.
-  function disperse(x, y, now, c, reach) {
+  // One spore from a moss pixel: a lognormal distance in a uniform direction. It takes root with
+  // the landing ground's habitat chance; ground the cursor cleared always takes moss back.
+  function disperse(x, y, now) {
     var d = sporeDistance(), a = Math.random() * 2 * Math.PI;
     var tx = Math.round(x + Math.cos(a) * d), ty = Math.round(y + Math.sin(a) * d);
     if (tx < 0 || ty < 0 || tx >= W || ty >= H) return;
     var t = ty * W + tx;
     if (born[t] >= 0 || inClearing(tx, ty)) return;
-    if (!cleared[t]) {
-      if (!c) return;
-      if (Math.hypot(tx - c.x, ty - c.y) > lobed(c, reach, tx, ty) && Math.random() > OUTPOST_TAKE) return;
-    }
-    plant(tx, ty, now);
+    if (cleared[t] || Math.random() < takes(t)) plant(tx, ty, now);
   }
 
   function grow(now, dt) {
-    var full = mossCount / openCount >= COVER_MAX;
-    if (now >= nextColony) {
-      if (!full) startColony(now);
-      nextColony = now + weibull(COLONY_K, COLONY_LAMBDA);
-    }
-    colonies.forEach(function (c) {
-      // at the cap, colonies stop widening; only cleared ground keeps filling back in
-      if (full) { c.start += dt; return; }
-      var reach = reachOf(c, now);
-      for (var k = RELEASES_PER_CELL * Math.PI * reach * reach * dt; k > 0; k--) {
-        var a = Math.random() * 2 * Math.PI, r = reach * Math.sqrt(Math.random());
-        var x = Math.round(c.x + Math.cos(a) * r), y = Math.round(c.y + Math.sin(a) * r);
-        if (isMoss(x, y)) disperse(x, y, now, c, reach);
-      }
-    });
-    for (var j = REGROW_PER_S * dt; j > 0; j--) {
-      var i = (Math.random() * W * H) | 0;
-      if (born[i] >= 0) disperse(i % W, (i / W) | 0, now, null, 0);
+    if (now >= nextSeed) { seed(now); nextSeed = now + weibull(SEED_K, SEED_LAMBDA); }
+    releaseDebt = Math.min(MAX_RELEASES, releaseDebt + mossCount * RELEASE_RATE * dt);
+    for (; releaseDebt >= 1; releaseDebt--) {
+      var i = mossList[(Math.random() * mossCount) | 0];
+      disperse(i % W, (i / W) | 0, now);
     }
   }
 
@@ -213,7 +204,9 @@
         }
       }
       var old = vines[n];
-      return { pts: pts, along: along, inward: inward, marks: marks, g: old ? Math.min(old.g, pts.length) : 0 };
+      return { pts: pts, along: along, inward: inward, marks: marks, g: old ? Math.min(old.g, pts.length) : 0,
+               turn: along[0] * inward[1] - along[1] * inward[0],   // which way is "toward the page" when it coils
+               coil: { k: 0, c: 0, until: 0 } };
     });
   }
   // Touching a creeper folds its leaves in a wave that spreads out from the touch, like a
@@ -228,9 +221,16 @@
       m.until = from + FOLD_S + SHUT_S;
     });
   }
+  // A click rolls the creeper up from that point to its tip, like a tendril; it unrolls later.
+  function coilVine(v, k, now) {
+    if (v.coil.c > 0 && now < v.coil.until) k = Math.min(k, v.coil.k);
+    v.coil.k = k;
+    v.coil.until = now + COIL_S + COILED_S;
+  }
   function tendVines(now, dt) {
     vines.forEach(function (v) {
-      v.g = Math.min(v.pts.length, v.g + VINE_SPEED * dt);
+      v.coil.c = now < v.coil.until ? Math.min(1, v.coil.c + dt / COIL_S) : Math.max(0, v.coil.c - dt / UNCOIL_S);
+      if (!v.coil.c) v.g = Math.min(v.pts.length, v.g + VINE_SPEED * dt);
       v.marks.forEach(function (m) {
         if (now >= m.from && now < m.until) m.fold = Math.min(1, m.fold + dt / FOLD_S);
         else if (now >= m.until) m.fold = Math.max(0, m.fold - dt / OPEN_S);
@@ -250,7 +250,7 @@
           var x = Math.round(px + dx), y = Math.round(py + dy);
           if (x < 0 || y < 0 || x >= W || y >= H) continue;
           var i = y * W + x;
-          if (born[i] >= 0) { born[i] = -1; cleared[i] = 1; mossCount--; }
+          if (born[i] >= 0) unplant(i);
         }
       }
       ferns.forEach(function (f) {
@@ -272,27 +272,45 @@
     var r = garden.getBoundingClientRect();
     var p = { x: (e.clientX - r.left) / P, y: (e.clientY - r.top) / P };
     if (p.x < 0 || p.y < 0 || p.x > W || p.y > H) { cursor = null; return; }
+    if (e.type === 'pointerdown') {
+      vines.forEach(function (v) {
+        for (var k = 0; k < v.g; k++) {
+          if (Math.hypot(v.pts[k][0] - p.x, v.pts[k][1] - p.y) <= 3.5) { coilVine(v, k, performance.now() / 1000); break; }
+        }
+      });
+    }
     if (cursor && Math.hypot(p.x - cursor.x, p.y - cursor.y) >= 0.5) clearPath(cursor, p, performance.now() / 1000);
     cursor = p;
   }
 
   // ---- ferns -------------------------------------------------------------------------
 
-  // Look for settled moss away from the text and from other ferns. Each site found waits a
-  // Weibull time; if its moss is disturbed before then, the fern never comes.
+  // Look for settled moss away from the text. Ferns spread from shared roots, so most searches
+  // start next to a fern that's already up, which lets them gather in loose groups. Each site
+  // found waits a Weibull time; if its moss is disturbed before then, the fern never comes.
   function scout(now) {
-    if (ferns.length + pending.length >= MAX_FERNS) return;
+    if (ferns.length + pending.length >= MAX_FERNS || !mossCount) return;
     for (var k = 0; k < 40; k++) {
-      var i = (Math.random() * W * H) | 0;
+      var i, x, y;
+      if (ferns.length && Math.random() < KIN) {
+        var kin = ferns[(Math.random() * ferns.length) | 0], r = 9 + Math.random() * 9, a = Math.random() * 2 * Math.PI;
+        x = Math.round(kin.x + Math.cos(a) * r); y = Math.round(kin.y + Math.sin(a) * r * 0.6);
+        if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) continue;
+        i = y * W + x;
+      } else {
+        i = mossList[(Math.random() * mossCount) | 0]; x = i % W; y = (i / W) | 0;
+      }
       if (born[i] < 0 || now - born[i] < MATURE) continue;
-      var x = i % W, y = (i / W) | 0, len = 14 + Math.random() * 8, ok = y > len + 2;
+      var len = 14 + Math.random() * 10, ok = y > 6;
       for (var dy = -1; dy <= 1 && ok; dy++) {
         for (var dx = -1; dx <= 1 && ok; dx++) ok = isMoss(x + dx, y + dy) && now - born[(y + dy) * W + x + dx] >= MATURE / 2;
       }
       if (!ok) continue;
-      var m = len * 0.6;
-      if (x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - 2 && y - len < zone.y1) continue;
-      if (ferns.concat(pending).some(function (f) { return Math.hypot(f.x - x, f.y - y) < FERN_GAP; })) continue;
+      var m = len;   // a fern can lean its full length to either side
+      if (x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - len * 0.4 && y - len < zone.y1) continue;
+      var all = ferns.concat(pending), near = 0;
+      if (all.some(function (f) { var d = Math.hypot(f.x - x, f.y - y); if (d < GROUP_R) near++; return d < FERN_GAP; })) continue;
+      if (near >= GROUP - 1) continue;   // groups stay small
       pending.push({ i: i, born: born[i], x: x, y: y, len: len, due: now + weibull(FERN_K, FERN_LAMBDA) });
       return;
     }
@@ -303,9 +321,11 @@
     pending = pending.filter(function (p) {
       if (p.i >= born.length || born[p.i] !== p.born) return false;
       if (now < p.due) return true;
+      // lean anywhere from upright to well over to one side; the further over, the more it arches
+      var lean = (Math.random() - 0.5) * 2.4;
       ferns.push({
-        x: p.x + 0.5, y: p.y + 0.5, ang: -Math.PI / 2 + (Math.random() - 0.5) * 0.8, len: p.len,
-        bend: (Math.random() - 0.3) * 0.9, sign: Math.random() < 0.5 ? -1 : 1, g: 0, curling: false
+        x: p.x + 0.5, y: p.y + 0.5, ang: -Math.PI / 2 + lean, len: p.len,
+        bend: 0.2 + Math.abs(lean) * 0.9, sign: lean >= 0 ? 1 : -1, g: 0, curling: false
       });
       return false;
     });
@@ -327,7 +347,7 @@
     var cur = L * g, tipR = L * (depth === 0 ? 0.14 : 0.25);
     var curlAmp = (Math.PI * (depth === 0 ? 2.2 : 1.2) * (1 - g)) / tipR;
     var bend = depth === 0 ? sign * f.bend / L : sign * 0.25 / L;
-    var spacing = depth === 0 ? Math.max(2.2, L * 0.065) : 1.6;
+    var spacing = depth === 0 ? Math.max(3, L * 0.13) : 1.6;   // room between leaflets keeps each one readable
     var nextLeaf = depth === 0 ? L * 0.12 : 1.2;
     var px = x, py = y, a = ang;
     for (var s = 0; s < cur; s += 0.5) {
@@ -340,7 +360,7 @@
         nextLeaf += spacing;
         if (depth === 0) {
           // leaflets longest a third of the way up, tapering to the tip
-          var u = s / L, childL = L * 0.3 * Math.sin(Math.PI * Math.min(1, u * 0.85 + 0.12)) + 1;
+          var u = s / L, childL = L * 0.27 * Math.sin(Math.PI * Math.min(1, u * 0.85 + 0.12)) + 1;
           var childG = Math.min(1, (cur - s) / (childL * 2)), sweep = 1.15 - u * 0.4;
           frond(px, py, a + sweep, childL, childG, 1, -1, f);
           frond(px, py, a - sweep, childL, childG, 1, 1, f);
@@ -388,17 +408,31 @@
       }
     }
     vines.forEach(function (v) {
-      var g = Math.floor(v.g);
-      for (var k = 0; k < g; k++) plot(v.pts[k][0], v.pts[k][1], C.vine);
+      var g = Math.floor(v.g), c = v.coil.c, from = c > 0 ? Math.min(v.coil.k, g) : g;
+      for (var k = 0; k < from; k++) plot(v.pts[k][0], v.pts[k][1], C.vine);
+      if (c > 0 && from < g) {
+        // past the click the stem bends ever more tightly toward the page, rolling into a coil;
+        // c blends each pixel between where it grew and where the coil puts it
+        // about two open turns show; the rest of the stem is tucked inside the coil
+        var x = v.pts[from][0], y = v.pts[from][1], a = Math.atan2(v.along[1], v.along[0]);
+        for (var j = from; j < g; j++) {
+          var t = j - from;
+          if (t < 30) {
+            a += v.turn * (0.2 + 0.012 * t);
+            x += Math.cos(a); y += Math.sin(a);
+          }
+          plot(Math.round(v.pts[j][0] + (x - v.pts[j][0]) * c), Math.round(v.pts[j][1] + (y - v.pts[j][1]) * c), C.vine);
+        }
+      }
       v.marks.forEach(function (m) {
-        if (m.i >= g - 1) return;
+        if (m.i >= g - 1 || (c > 0.2 && m.i >= from)) return;   // leaves on the coiled part are tucked away
         var p = v.pts[m.i];
         var shape = m.fold > 0.66 ? SHUT : m.fold > 0.2 ? HALF : LEAF;
         shape[m.kind].forEach(function (o) {
           plot(p[0] + v.along[0] * o[0] + v.inward[0] * o[1] * m.side, p[1] + v.along[1] * o[0] + v.inward[1] * o[1] * m.side, C[o[2]]);
         });
       });
-      if (g > 2) {   // the growing tip curls toward the page
+      if (g > 2 && !c) {   // the growing tip curls toward the page
         var t = v.pts[g - 1];
         plot(t[0] + v.inward[0], t[1] + v.inward[1], C.vine);
         plot(t[0] + v.inward[0] - v.along[0], t[1] + v.inward[1] - v.along[1], C['vine-leaf-2']);
@@ -413,8 +447,8 @@
   function step(now, dt) {
     if (!started) {
       started = true;
-      for (var k = 0; k < START_COLONIES; k++) startColony(now);
-      nextColony = now + weibull(COLONY_K, COLONY_LAMBDA);
+      for (var k = 0; k < START_SEEDS; k++) seed(now);
+      nextSeed = now + weibull(SEED_K, SEED_LAMBDA);
     }
     grow(now, dt);
     tendVines(now, dt);
