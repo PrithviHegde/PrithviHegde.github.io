@@ -103,14 +103,20 @@
     .intro {
       position: absolute;
       left: max(var(--pad), calc(50% - 46rem + var(--pad)));
-      bottom: 3.2rem;
+      top: 50%; transform: translateY(-50%);
       z-index: 1;
-      width: min(34rem, calc(100% - 3rem));
+      width: min(46rem, 58%);
     }
-    .hint { font: 400 0.8rem/1.7 var(--mono); color: var(--muted); margin: 0 0 1.4rem; }
-    h1 { font: 600 3rem/1.05 var(--serif); margin: 0 0 0.8rem; }
-    .pitch { font-size: 1.1rem; line-height: 1.55; margin: 0 0 1.1rem; }
-    .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
+    /* the intro arrives first, one piece after another; the garden starts growing once it has */
+    @media (prefers-reduced-motion: no-preference) {
+      .intro > * { animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+      .intro .pitch { animation-delay: 0.2s; }
+      .intro .links { animation-delay: 0.4s; }
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
+    h1 { font: 600 clamp(3rem, 5vw, 4.5rem)/1.05 var(--serif); letter-spacing: -0.01em; margin: 0 0 1.1rem; }
+    .pitch { font-size: clamp(1.1rem, 1.35vw, 1.25rem); line-height: 1.55; max-width: 36rem; margin: 0 0 1.4rem; }
+    .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 1.05rem; }
     .theme {
       flex: none;
       width: 1.5rem; height: 1.5rem; padding: 0;
@@ -129,12 +135,6 @@
     #education { grid-column: span 4; align-self: start; }
     #experience { grid-column: 1 / span 7; grid-row: span 2; }
     #publications, #contact { grid-column: 8 / span 5; }
-    .now {
-      justify-self: start;
-      padding: 0.65rem 1.1rem; border-left: 2px solid var(--sprig); border-radius: 0 8px 8px 0;
-      background: var(--card); color: var(--muted); font-size: 0.95rem;
-    }
-    .now p { margin: 0; }
 
     /* Each section is a card: a plain, solid surface, so the text reads cleanly and the moss stays outside it */
     section {
@@ -265,8 +265,8 @@
       .qmr div, .contact div { grid-template-columns: minmax(0, 1fr); gap: 0; }
       .contact dt { line-height: 1.6; }
       footer { padding-left: 0; padding-right: 0; }
-      h1 { font-size: 2.4rem; }
-      .intro { bottom: 2rem; }
+      h1 { font-size: 2.8rem; margin-bottom: 1rem; }
+      .intro { width: calc(100% - 2 * var(--pad)); }
       .bar { gap: 0.9rem; padding: 0 1rem; }
       .bar nav { display: none; }
       .bar-name { margin-right: auto; }
@@ -296,7 +296,6 @@
 
   <header class="garden">
     <div class="intro">
-      <p class="hint">stay for a while.</p>
       <h1>Prithvi Hegde</h1>
       <p class="pitch">MS Data Science student at the University of Washington. I work where machine learning meets human decision-making, especially models that can explain themselves. Prior to this, I spent two years building lending decision strategy and models at Wells Fargo.</p>
       <ul class="links">
@@ -308,10 +307,6 @@
   </header>
 
   <main>
-    <div class="now">
-      <p>Open to internships and research roles in data science, machine learning, AI and quantitative finance.</p>
-    </div>
-
     <section id="about" aria-labelledby="about-h">
       <h2 id="about-h">About</h2>
       <div class="about-body">

@@ -1,8 +1,8 @@
 // The moss garden at the top of the page. The model is written up at github.com/PrithviHegde/moss:
 // spores travel lognormal distances, and the waits for new patches and for ferns are Weibull.
 //
-// The garden fills the top of the page and carries on down the side margins, stopping well short
-// of the text. Ground stays asleep until it first scrolls into view, so visitors see each part of
+// The garden fills the top of the page, thinning out towards the intro text, and carries on down
+// the side margins beside the cards. Ground stays asleep until it first scrolls into view, so visitors see each part of
 // the garden begin; once seen, it keeps growing whether or not it's on screen. Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
 // habitat map marks as damp enough, so it creeps in fingers and patches rather than circles.
 // Ferns rise from settled moss, more often next to other ferns, leaning whichever way they like.
@@ -33,6 +33,8 @@
   var MARGIN = -4;                     // pixels between the side gardens and the cards; negative lets the moss run a little under the cards' edges
   var MIN_GUTTER = 10;                 // pixels: a side margin narrower than this grows nothing
   var HABITAT = 0.57, HABITAT_SOFT = 0.1;    // habitat score where moss starts, and fully, taking root
+  var TEXT_CORE = 3, TEXT_FEATHER = 30, TEXT_WOBBLE = 12;   // pixels: bare right at the intro text, moss thinning out to here, and how uneven that is
+  var START_DELAY = 1000;              // ms before the garden starts, so the intro text arrives first
   var BRUSH = 1.6;                     // pixels cleared either side of the cursor's path
   var SPROUT = 1.2;                    // s before a moss pixel can carry a sprig
   var MATURE = 3;                      // s undisturbed before moss can carry a fern
@@ -68,7 +70,7 @@
   var mossList = new Int32Array(0), mossAt = new Int32Array(0), mossCount = 0;   // moss pixels, for picking one at random
   var wokeAt = new Float32Array(0);    // when each row first came into view (s), or -1 while still unseen
   var awakeRows = 0, seedDebt = 0;
-  var zone = { x0: 0, y0: 0, x1: 0, y1: 0 };   // the intro text, in pixels
+  var near = new Float32Array(0);      // top garden only: 0 right at the intro text, rising to 1 where moss grows freely
   var heroH = 0, gutL = -1, gutR = 1e9;            // the top garden's height; where the text column's bare band starts and ends
   var ferns = [], pending = [], vines = [];
   var C = {};
@@ -138,13 +140,8 @@
       mossList = new Int32Array(W * H); mossAt = new Int32Array(W * H).fill(-1); mossCount = 0;
       for (var i = 0; i < born.length; i++) if (born[i] >= 0) { mossList[mossCount] = i; mossAt[i] = mossCount++; }
     }
-    var ir = intro.getBoundingClientRect();
-    zone = {
-      x0: Math.floor((ir.left - 16) / P), y0: Math.floor((ir.top + sy - 16) / P),
-      x1: Math.ceil((ir.right + 16) / P), y1: Math.ceil((ir.bottom + sy + 16) / P)
-    };
-    heroH = Math.floor((garden.getBoundingClientRect().bottom + sy) / P);
-    zone.y1 = Math.max(zone.y1, heroH + 1);   // the clearing runs on down into the bare text column
+    heroH = Math.min(H, Math.floor((garden.getBoundingClientRect().bottom + sy) / P));
+    feather(sy);
     // below the top garden, only the side margins grow anything, and not too close to the text
     var mr = main.getBoundingClientRect(), pad = parseFloat(getComputedStyle(main).paddingLeft) || 0;
     gutL = Math.floor((mr.left + pad) / P) - MARGIN;
@@ -154,12 +151,49 @@
     layVines();
   }
 
-  // Bare ground: the intro text's clearing at the top, and below the top garden everything but
-  // the side margins. Both have a ragged edge.
-  function inClearing(x, y) {
+  // How close each pixel of the top garden is to the intro's lines of text. There is no clearing
+  // with an edge: moss is bare right at the words and thins out towards them, unevenly.
+  function feather(sy) {
+    var lines = [], range = document.createRange();
+    [].forEach.call(intro.children, function (el) {
+      range.selectNodeContents(el);
+      [].forEach.call(range.getClientRects(), function (r) {
+        if (r.width > 1 && r.height > 1) lines.push([r.left / P, (r.top + sy) / P, r.right / P, (r.bottom + sy) / P]);
+      });
+    });
+    var reach = Math.min(TEXT_FEATHER, W * 0.14);   // a narrower fade on small screens
+    near = new Float32Array(W * heroH);
+    for (var y = 0; y < heroH; y++) {
+      for (var x = 0; x < W; x++) {
+        var d = 1e9;
+        for (var k = 0; k < lines.length; k++) {
+          var l = lines[k], dx = Math.max(l[0] - x, 0, x - l[2]), dy = Math.max(l[1] - y, 0, y - l[3]);
+          d = Math.min(d, Math.hypot(dx, dy));
+        }
+        d += (noise(x / 11 + ground[1], y / 11 + ground[0]) - 0.5) * TEXT_WOBBLE;
+        var t = Math.max(0, Math.min(1, (d - TEXT_CORE) / (reach - TEXT_CORE))), i = y * W + x;
+        near[i] = t;
+        if (t <= 0 && born[i] >= 0) { unplant(i); cleared[i] = 0; }   // moss that took root before the text settled
+      }
+    }
+  }
+
+  // Bare ground. In the top garden: right at the intro text always, and more and more often the
+  // closer a pixel is to it, in small clumps, so the moss fades out instead of stopping at a line.
+  // With `firm` (ferns and creepers) the whole fade is off limits. Below the top garden:
+  // everything but the side margins, with a ragged edge.
+  function inClearing(x, y, firm) {
+    if (y < heroH) {
+      if (x < 0 || y < 0 || x >= W) return false;
+      var t = near[y * W + x];
+      if (t >= 1) return false;
+      if (firm) return t < 0.8;
+      if (t <= 0) return true;
+      var p = t * t * (3 - 2 * t);
+      return 0.65 * noise(x / 3.5 + ground[0], y / 3.5 + ground[1]) + 0.35 * hash(x, y, 5) >= 0.2 + 0.75 * p;
+    }
     var m = hash(x, y, 5) * 3;
-    if (x > zone.x0 - m && x < zone.x1 + m && y > zone.y0 - m && y < zone.y1 + m) return true;
-    return y >= heroH && x > gutL - m && x < gutR + m;
+    return x > gutL - m && x < gutR + m;
   }
 
   // ---- moss ----------------------------------------------------------------------
@@ -262,7 +296,7 @@
           : s.from === 'left-page' ? [0, Math.floor(s.at) + i] : [W - 1, Math.floor(s.at) + i];
         if (base[1] >= H) break;
         var p = [base[0] + inward[0] * off, base[1] + inward[1] * off];
-        if (inClearing(p[0], p[1])) break;
+        if (inClearing(p[0], p[1], true)) break;
         pts.push(p);
         if (i - lastLeaf >= 3 && hash(i, n, 17) < 0.45) {
           lastLeaf = i;
@@ -393,8 +427,8 @@
       }
       if (!ok) continue;
       // a fern can lean its full length to either side: keep all of that reach on growing ground
-      if (inClearing(x - len, y - len * 0.5) || inClearing(x + len, y - len * 0.5) || inClearing(x, y - len) ||
-          inClearing(x - len, y) || inClearing(x + len, y)) continue;
+      if (inClearing(x - len, y - len * 0.5, true) || inClearing(x + len, y - len * 0.5, true) || inClearing(x, y - len, true) ||
+          inClearing(x - len, y, true) || inClearing(x + len, y, true) || inClearing(x, y, true)) continue;
       var all = ferns.concat(pending), near = 0;
       if (all.some(function (f) { var d = Math.hypot(f.x - x, f.y - y); if (d < GROUP_R) near++; return d < FERN_GAP; })) continue;
       if (near >= GROUP - 1) continue;   // groups stay small
@@ -587,6 +621,8 @@
     root.addEventListener('pointerleave', function () { cursor = null; });
     // scrolling moves the page under a still cursor; that isn't a swipe, so start afresh
     addEventListener('scroll', function () { cursor = null; }, { passive: true });
-    requestAnimationFrame(frame);
+    // the intro text arrives first; then the garden starts growing around it
+    intro.addEventListener('animationend', refit);
+    setTimeout(function () { last = performance.now() / 1000; requestAnimationFrame(frame); }, START_DELAY);
   }
 })();
