@@ -108,8 +108,10 @@
   // The canvas covers the whole page. It is sized from the content (never from the page's own
   // scroll height, which would include the canvas and could only grow), rounded down so it never
   // adds scrolling of its own.
+  function viewTop() { return -canvas.getBoundingClientRect().top; }   // css px of canvas above the viewport's top edge
   function resize() {
-    var page = document.documentElement, sy = window.scrollY;
+    // sy turns viewport positions into canvas positions (the canvas starts below the top bar)
+    var page = document.documentElement, sy = viewTop();
     var pageH = main.getBoundingClientRect().bottom + sy;
     // at least 1x1: a window can report zero size while it loads in the background
     var w = Math.max(1, Math.floor(page.clientWidth / P)), h = Math.max(1, Math.floor(pageH / P));
@@ -212,7 +214,7 @@
   // Rows wake the first time they come into view. Each newly woken stretch gets its share of
   // spores (START_SEEDS per screenful), so growth starts there while the visitor is looking.
   function wake(now) {
-    var top = Math.max(0, Math.floor(window.scrollY / P)), bottom = Math.min(H, Math.ceil((window.scrollY + innerHeight) / P));
+    var vt = viewTop(), top = Math.max(0, Math.floor(vt / P)), bottom = Math.min(H, Math.ceil((vt + innerHeight) / P));
     var first = -1, last = -1;
     for (var y = top; y < bottom; y++) {
       if (wokeAt[y] >= 0) continue;
@@ -468,8 +470,9 @@
   // Moss is a pale wash, dithered at its edges, with star-shaped sprigs over the settled middle.
   // Only the rows on screen are drawn (all of them when `whole` is set).
   function draw(now, whole) {
-    var top = whole ? 0 : Math.max(0, Math.floor(window.scrollY / P) - 2);
-    var bottom = whole ? H : Math.min(H, Math.ceil((window.scrollY + innerHeight) / P) + 2);
+    var vt = viewTop();
+    var top = whole ? 0 : Math.max(0, Math.floor(vt / P) - 2);
+    var bottom = whole ? H : Math.min(H, Math.ceil((vt + innerHeight) / P) + 2);
     if (bottom <= top) return;
     buf.fill(0, top * W, bottom * W);
     var x, y, i;

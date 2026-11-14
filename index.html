@@ -41,9 +41,11 @@
       --serif: "EB Garamond", Garamond, Georgia, serif;
       --sans: Inter, -apple-system, "Segoe UI", sans-serif;
       --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+      --bar-h: 3.25rem;
     }
     * { box-sizing: border-box; }
-    html { -webkit-text-size-adjust: 100%; }
+    html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--bar-h) + 1.5rem); }
+    @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
     body {
       position: relative;
       margin: 0;
@@ -57,15 +59,44 @@
     a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
     p { margin: 0 0 1rem; }
 
+    /* The top bar stays put while the page scrolls */
+    .bar {
+      position: sticky; top: 0; z-index: 10;
+      height: var(--bar-h);
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 0 1.25rem;
+      background: var(--bg) var(--grain) repeat;
+      border-bottom: 1px solid var(--line);
+      font-size: 0.9rem;
+    }
+    /* the name appears in the bar once the big one has scrolled away */
+    .bar-name {
+      font: 600 1.25rem/1 var(--serif); color: var(--text); text-decoration: none;
+      opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
+    }
+    .bar.scrolled .bar-name { opacity: 1; visibility: visible; }
+    .bar nav { display: flex; gap: 1.4rem; margin-left: auto; }
+    .bar nav a { color: var(--muted); text-decoration: none; }
+    .bar nav a:hover { color: var(--text); }
+    .resume {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      padding: 0.35rem 0.7rem;
+      border: 1px solid var(--accent); border-radius: 4px;
+      color: var(--accent); text-decoration: none; font-weight: 500;
+    }
+    .resume[hidden] { display: none; }
+    .resume:hover { background: var(--accent); color: var(--bg); }
+    .resume svg { width: 0.95rem; height: 0.95rem; }
+
     /* The garden: moss, creepers and ferns at the top, with the intro in a clearing */
     .garden {
       position: relative;
-      height: 82svh; min-height: 440px;
+      height: calc(82svh - var(--bar-h)); min-height: 440px;
       overflow: hidden;
       border-bottom: 1px solid var(--line);
     }
     /* one canvas for the whole page: the top garden and the side margins below it */
-    .garden-canvas { position: absolute; top: 0; left: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
+    .garden-canvas { position: absolute; top: var(--bar-h); left: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
     .intro {
       position: absolute;
       left: max(1.5rem, calc(50% - 22rem));
@@ -78,8 +109,8 @@
     .pitch { font-size: 1.1rem; line-height: 1.55; margin: 0 0 1.1rem; }
     .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 0.95rem; }
     .theme {
-      position: absolute; top: 1.1rem; right: 1.1rem; z-index: 2;
-      width: 1.75rem; height: 1.75rem; padding: 0;
+      flex: none;
+      width: 1.5rem; height: 1.5rem; padding: 0;
       border: 1px solid var(--muted); border-radius: 50%;
       background: linear-gradient(90deg, #1c1914 50%, #e7ddcc 50%);
       cursor: pointer;
@@ -142,21 +173,39 @@
     @media (max-width: 40rem) {
       h1 { font-size: 2.4rem; }
       .intro { bottom: 2rem; }
+      .bar { gap: 0.9rem; padding: 0 1rem; }
+      .bar nav { display: none; }
+      .bar-name { margin-right: auto; }
       .entry { grid-template-columns: 1fr; }
       .when { line-height: 1.6; margin-bottom: 0.2rem; }
     }
   </style>
 </head>
 <body>
-  <header class="garden">
+  <div class="bar" id="top">
+    <a class="bar-name" href="#top">Prithvi Hegde</a>
+    <nav aria-label="Sections">
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#publications">Publications</a>
+      <a href="#experience">Experience</a>
+      <a href="#education">Education</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <!-- hidden until resume.pdf (the web copy, no phone number) exists; remove `hidden` then -->
+    <a class="resume" href="resume.pdf" hidden>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 1.5h5.5L12.5 4.5v10h-8.5z"/><path d="M9.5 1.5v3h3"/><path d="M6 8h4.5M6 10.5h4.5"/></svg>
+      Résumé
+    </a>
     <button class="theme" type="button" aria-label="Switch to the sand theme"></button>
+  </div>
+
+  <header class="garden">
     <div class="intro">
       <p class="hint">stay for a while.</p>
       <h1>Prithvi Hegde</h1>
       <p class="pitch">MS Data Science student at the University of Washington. I work where machine learning meets human decision-making, especially models that can explain themselves. Prior to this, I spent two years building lending decision strategy and models at Wells Fargo.</p>
       <ul class="links">
-        <!-- Résumé: add once the web copy (no phone number) is ready.
-        <li><a href="resume.pdf">Résumé</a></li> -->
         <li><a href="mailto:prithvihegde123@gmail.com">Email</a></li>
         <li><a href="https://github.com/PrithviHegde">GitHub</a></li>
         <li><a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></li>
@@ -269,7 +318,7 @@
       </article>
     </section>
 
-    <footer>
+    <footer id="contact">
       <span>&copy; 2026 Prithvi Hegde &middot; <a href="https://github.com/PrithviHegde/moss">About the moss</a></span>
       <span><a href="mailto:prithvihegde123@gmail.com">Email</a> &middot; <a href="https://github.com/PrithviHegde">GitHub</a> &middot; <a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></span>
     </footer>
@@ -287,6 +336,13 @@
         label();
       });
       label();
+    })();
+    // show the name in the bar once the big one has scrolled out of view
+    (function () {
+      var bar = document.querySelector('.bar'), name = document.querySelector('h1');
+      if (!('IntersectionObserver' in window)) { bar.classList.add('scrolled'); return; }
+      new IntersectionObserver(function (e) { bar.classList.toggle('scrolled', !e[0].isIntersecting); },
+        { rootMargin: '-52px 0px 0px 0px' }).observe(name);
     })();
   </script>
   <script src="moss.js" defer></script>
