@@ -30,8 +30,8 @@
   var WAKE_SEEDS = 7;                  // spores landing per screenful of newly seen margin
   var RELEASE_RATE = 2.5;              // spores released per moss pixel per second
   var MAX_RELEASES = 2500;             // per frame, to bound the work on big pages
-  var MARGIN = 12;                     // pixels kept bare between the side gardens and the text column
-  var MIN_GUTTER = 14;                 // pixels: a side margin narrower than this grows nothing
+  var MARGIN = -4;                     // pixels between the side gardens and the cards; negative lets the moss run a little under the cards' edges
+  var MIN_GUTTER = 10;                 // pixels: a side margin narrower than this grows nothing
   var HABITAT = 0.57, HABITAT_SOFT = 0.1;    // habitat score where moss starts, and fully, taking root
   var BRUSH = 1.6;                     // pixels cleared either side of the cursor's path
   var SPROUT = 1.2;                    // s before a moss pixel can carry a sprig
