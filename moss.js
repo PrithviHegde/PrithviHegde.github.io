@@ -623,6 +623,7 @@
     addEventListener('scroll', function () { cursor = null; }, { passive: true });
     // the intro text arrives first; then the garden starts growing around it
     intro.addEventListener('animationend', refit);
+    if (document.fonts) document.fonts.ready.then(refit);   // the text's shape changes once the fonts arrive
     setTimeout(function () { last = performance.now() / 1000; requestAnimationFrame(frame); }, START_DELAY);
   }
 })();
