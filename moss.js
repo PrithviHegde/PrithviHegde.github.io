@@ -2,7 +2,7 @@
 // spores travel lognormal distances, and the waits for new patches and for ferns are Weibull.
 //
 // The garden fills the top of the page, thinning out towards the intro text, and carries on down
-// the side margins beside the cards. Ground stays asleep until it first scrolls into view, so visitors see each part of
+// the side margins, with beds of moss across the page in the gaps between chapters. Ground stays asleep until it first scrolls into view, so visitors see each part of
 // the garden begin; once seen, it keeps growing whether or not it's on screen. Moss spreads as a carpet from wherever it already grows, taking root only on ground a hidden
 // habitat map marks as damp enough, so it creeps in fingers and patches rather than circles.
 // Ferns rise from settled moss, more often next to other ferns, leaning whichever way they like.
@@ -33,6 +33,7 @@
   var MARGIN = -4;                     // pixels between the side gardens and the cards; negative lets the moss run a little under the cards' edges
   var MIN_GUTTER = 10;                 // pixels: a side margin narrower than this grows nothing
   var HABITAT = 0.57, HABITAT_SOFT = 0.1;    // habitat score where moss starts, and fully, taking root
+  var BED_GAP = 6, BED_FEATHER = 9;    // pixels: bare ground kept above and below the text around a bed, and how far the bed's edge thins out
   var TEXT_CORE = 3, TEXT_FEATHER = 30, TEXT_WOBBLE = 12;   // pixels: bare right at the intro text, moss thinning out to here, and how uneven that is
   var START_DELAY = 1000;              // ms before the garden starts, so the intro text arrives first
   var BRUSH = 1.6;                     // pixels cleared either side of the cursor's path
@@ -71,6 +72,7 @@
   var wokeAt = new Float32Array(0);    // when each row first came into view (s), or -1 while still unseen
   var awakeRows = 0, seedDebt = 0;
   var near = new Float32Array(0);      // top garden only: 0 right at the intro text, rising to 1 where moss grows freely
+  var beds = [];                       // [top, bottom] pixel rows between chapters where moss may grow across the page
   var heroH = 0, gutL = -1, gutR = 1e9;            // the top garden's height; where the text column's bare band starts and ends
   var ferns = [], pending = [], vines = [];
   var C = {};
@@ -140,7 +142,7 @@
       mossList = new Int32Array(W * H); mossAt = new Int32Array(W * H).fill(-1); mossCount = 0;
       for (var i = 0; i < born.length; i++) if (born[i] >= 0) { mossList[mossCount] = i; mossAt[i] = mossCount++; }
     }
-    heroH = Math.min(H, Math.floor((garden.getBoundingClientRect().bottom + sy) / P));
+    heroH = Math.max(0, Math.min(H, Math.floor((garden.getBoundingClientRect().bottom + sy) / P)));
     feather(sy);
     // below the top garden, only the side margins grow anything, and not too close to the text
     var mr = main.getBoundingClientRect(), pad = parseFloat(getComputedStyle(main).paddingLeft) || 0;
@@ -148,6 +150,15 @@
     gutR = Math.ceil((mr.right - pad) / P) + MARGIN;
     if (gutL < MIN_GUTTER) gutL = -1;
     if (W - gutR < MIN_GUTTER) gutR = W + 1;
+    // between two chapters the whole width is open ground: a bed, kept clear of the text on either side
+    beds = [];
+    var secs = [].slice.call(main.querySelectorAll('section'));
+    for (var k = 0; k + 1 < secs.length; k++) {
+      if (secs[k].closest('.chapter') === secs[k + 1].closest('.chapter')) continue;
+      var b0 = Math.ceil((secs[k].getBoundingClientRect().bottom + sy) / P) + BED_GAP;
+      var b1 = Math.floor((secs[k + 1].getBoundingClientRect().top + sy) / P) - BED_GAP;
+      if (b1 - b0 > 2 * BED_FEATHER) beds.push([b0, b1]);
+    }
     layVines();
   }
 
@@ -193,7 +204,17 @@
       return 0.65 * noise(x / 3.5 + ground[0], y / 3.5 + ground[1]) + 0.35 * hash(x, y, 5) >= 0.2 + 0.75 * p;
     }
     var m = hash(x, y, 5) * 3;
-    return x > gutL - m && x < gutR + m;
+    if (!(x > gutL - m && x < gutR + m)) return false;   // the side margins always grow
+    for (var k = 0; k < beds.length; k++) {
+      var b = beds[k];
+      if (y < b[0] || y >= b[1]) continue;
+      var e = Math.min(1, Math.min(y - b[0], b[1] - 1 - y) / BED_FEATHER);   // 0 at the bed's edges, 1 inside
+      if (firm) return e < 0.8;
+      if (e >= 1) return false;
+      var q = e * e * (3 - 2 * e);
+      return 0.65 * noise(x / 3.5 + ground[0], y / 3.5 + ground[1]) + 0.35 * hash(x, y, 5) >= 0.2 + 0.75 * q;
+    }
+    return true;
   }
 
   // ---- moss ----------------------------------------------------------------------

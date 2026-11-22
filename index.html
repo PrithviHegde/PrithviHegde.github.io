@@ -28,6 +28,7 @@
       --fern-stem: #6c8c5c; --fern-leaf: #8db077; --fern-tip: #c3d9a9;
       --grain: none;
       --card: #3b3026;
+      --btn: #6a5038; --btn-hover: #7a5d42; --btn-text: #f6ecda;
       --edge-hi: #8a725a; --edge: #544536; --edge-lo: #2e251c;
       --viz-hi: #8db077; --viz-mid: #d9d1c0; --viz-low: #8a8170;
     }
@@ -39,6 +40,7 @@
       --vine: #839c71; --vine-leaf: #a6b98f; --vine-leaf-2: #bccaa5;
       --fern-stem: #1d301f; --fern-leaf: #2a4a2a; --fern-tip: #5d8a4c;
       --card: #f6f2e7;
+      --btn: #6b4f33; --btn-hover: #5c432a; --btn-text: #fbf6ec;
       --edge-hi: #fffdf8; --edge: #d2c7b0; --edge-lo: #b9ac92;
       --viz-hi: #3f7a3f; --viz-mid: #2b2925; --viz-low: #857c6b;
     }
@@ -49,7 +51,8 @@
       --serif: "Fraunces", Georgia, serif;
       --sans: "Literata", Georgia, serif;
       --mono: "Departure Mono", ui-monospace, Menlo, monospace;
-      --bar-h: 3.25rem;
+      --bar-h: 4rem;
+      --ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;   /* plain and easy to read: the top bar and buttons */
       --pad: clamp(1rem, 4vw, 4rem);
     }
     /* Fonts, hosted in fonts/ with their licences: Fraunces and Literata (SIL Open Font License,
@@ -87,22 +90,20 @@
       display: flex; align-items: center; gap: 1.75rem;
       padding: 0 var(--pad);
       background: var(--bg);
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s, background-color 0.3s;
+      border-bottom: 1px solid var(--edge);   /* always there: a plain line marks the bar off from the page */
     }
-    .bar.scrolled { border-bottom-color: var(--line); }
     /* the name appears in the bar once the big one has scrolled away */
     .bar-name {
-      font: 600 1.3rem/1 var(--serif); color: var(--text); text-decoration: none;
+      font: 600 1.5rem/1 var(--serif); color: var(--text); text-decoration: none;
       opacity: 0; visibility: hidden; transition: opacity 0.25s, visibility 0.25s;
     }
     .bar.scrolled .bar-name { opacity: 1; visibility: visible; }
-    /* section links: small spaced capitals; the one you're reading gets a pixel sprig under it */
-    .bar nav { display: flex; gap: 1.6rem; margin-left: auto; }
-    .bar nav a, .resume {
+    /* section links in a plain sans; the one you're reading gets a pixel sprig under it */
+    .bar nav { display: flex; gap: 1.75rem; margin-left: auto; }
+    .bar nav a {
       position: relative;
-      font: 400 0.72rem/1 var(--mono); letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--muted); text-decoration: none; padding: 0.6rem 0;
+      font: 400 0.98rem/1 var(--ui);
+      color: var(--muted); text-decoration: none; padding: 0.7rem 0;
     }
     .bar nav a:hover, .bar nav a[aria-current="true"] { color: var(--text); }
     .bar nav a::after {
@@ -112,19 +113,25 @@
       transform: scaleY(0); transform-origin: bottom; transition: transform 0.25s steps(3, end);
     }
     .bar nav a[aria-current="true"]::after { transform: scaleY(1); }
-    /* the résumé: a quiet link, set apart by colour and a small arrow */
-    .resume { color: var(--accent); display: inline-flex; align-items: center; gap: 0.45rem; }
-    .resume::before { content: ""; width: 1px; height: 1rem; margin-right: 1.3rem; background: var(--line); }
-    .resume span { letter-spacing: 0; transition: transform 0.2s; }
-    .resume:hover { color: var(--text); }
-    .resume:hover span { transform: translateY(2px); }
+    /* the résumé: a solid brown button, the one thing in the bar meant to be noticed */
+    .resume {
+      display: inline-flex; align-items: center; gap: 0.5rem; margin-left: 0.5rem;
+      padding: 0.65rem 1.1rem; border-radius: 8px;
+      background: var(--btn); color: var(--btn-text);
+      font: 600 0.98rem/1 var(--ui); text-decoration: none;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      transition: background-color 0.2s;
+    }
+    .resume:hover { background: var(--btn-hover); }
+    .resume svg { width: 15px; height: 15px; transition: transform 0.2s; }
+    .resume:hover svg { transform: translateY(2px); }
 
     /* The garden: moss, creepers and ferns at the top, with the intro in a clearing */
     .garden {
       position: relative;
-      height: calc(82svh - var(--bar-h)); min-height: 440px;
+      height: calc(100svh - var(--bar-h)); min-height: 480px;
       overflow: hidden;
-      border-bottom: 1px solid var(--line);
+      border-bottom: 2px solid var(--edge);
     }
     /* one canvas for the whole page: the top garden and the side margins below it */
     .garden-canvas { position: absolute; top: var(--bar-h); left: 0; z-index: 0; pointer-events: none; image-rendering: pixelated; }
@@ -144,34 +151,70 @@
     @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
     h1 { font: 500 clamp(3rem, 5vw, 4.5rem)/1.05 var(--serif); letter-spacing: -0.01em; margin: 0 0 1.1rem; }
     .pitch { font-size: clamp(1.1rem, 1.35vw, 1.25rem); line-height: 1.5; max-width: 36rem; margin: 0 0 1.4rem; }
-    .links { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; margin: 0; padding: 0; list-style: none; font-size: 1.05rem; }
+    /* contact links: small framed buttons with an icon each */
+    .links { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0; padding: 0; list-style: none; }
+    .links a {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      padding: 0.55rem 0.9rem; border: 1px solid var(--edge); border-radius: 8px;
+      font: 500 0.95rem/1 var(--ui); color: var(--text); text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .links a:hover { border-color: var(--accent); color: var(--accent); }
+    .links svg { width: 17px; height: 17px; flex: none; }
+    .links .ext { width: 11px; height: 11px; margin-left: -0.15rem; opacity: 0.7; }
+    .links a.copied, .links a.copied:hover { background: var(--btn); border-color: var(--btn); color: var(--btn-text); }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    /* a small pixel arrow at the foot of the first screen; it fades once you start scrolling */
+    .scroll-cue {
+      position: absolute; left: 50%; bottom: 1.5rem; z-index: 1; margin-left: -1rem;
+      width: 2rem; height: 2rem; display: grid; place-items: center;
+      color: var(--muted); transition: opacity 0.4s;
+    }
+    .scroll-cue svg { width: 14px; height: 16px; fill: currentColor; }
+    .scroll-cue:hover { color: var(--text); }
+    .past-top .scroll-cue { opacity: 0; pointer-events: none; }
+    @media (prefers-reduced-motion: no-preference) {
+      .scroll-cue svg { animation: bob 2.4s ease-in-out 1.6s infinite; }
+    }
+    @keyframes bob { 50% { transform: translateY(4px); } }
     /* the theme toggle: a pixel sun in the dark theme, a pixel moon in the light one */
     .theme {
       flex: none; display: grid; place-items: center;
-      width: 2rem; height: 2rem; padding: 0; margin-right: -0.4rem;
+      width: 2.25rem; height: 2.25rem; padding: 0; margin-right: -0.4rem;
       background: none; border: 0; color: var(--muted); cursor: pointer;
     }
     .theme:hover { color: var(--accent); }
-    .theme svg { width: 18px; height: 18px; fill: currentColor; }
+    .theme svg { width: 20px; height: 20px; fill: currentColor; }
     .theme .moon, :root[data-theme="sand"] .theme .sun { display: none; }
     :root[data-theme="sand"] .theme .moon { display: block; }
 
-    /* The content is a wide grid of cards of different sizes, one per section in the top bar */
-    main {
-      position: relative; z-index: 1; max-width: 92rem; margin: 0 auto; padding: 3rem var(--pad) 4rem;
-      display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 1.5rem;
+    /* The content comes in chapters: Projects, Experience, About with Education, and Publications
+       with Contact. There are no section cards: each section is a split, its title (and a short line)
+       in the left third and its content on the right, so every title lines up down the page. Wide
+       gaps between chapters are left for the moss, which grows there in beds (see moss.js). */
+    main { position: relative; z-index: 1; max-width: 92rem; margin: 0 auto; padding: 6rem var(--pad) 2rem; }
+    .chapter + .chapter { margin-top: 14rem; }
+    .chapter section + section { margin-top: 6rem; }
+    /* each section: its title on top (with any controls at the right), then content across the full width */
+    section { position: relative; }
+    .sec-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; margin-bottom: 2.75rem; }
+    .sec-head h2 { font: 500 clamp(2.4rem, 3.3vw, 3.1rem)/1.05 var(--serif); margin: 0; }
+    .sec-head .picker { display: inline-flex; }
+    /* a soft rule with rounded ends marks where each section starts (the first follows the landing line) */
+    main section:not(#projects) { padding-top: 3.25rem; }
+    main section:not(#projects)::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; border-radius: 2px; background: var(--edge);
     }
-    main > * { grid-column: 1 / -1; }
-    #about { grid-column: span 8; }
-    #education { grid-column: span 4; align-self: start; }
-    #experience { grid-column: 1 / span 7; grid-row: span 2; }
-    #publications, #contact { grid-column: 8 / span 5; }
+    /* cards settle into place as their chapter arrives (only when motion is welcome; see the script) */
+    .settle main section { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+    .settle main section + section { transition-delay: 0.1s; }
+    .settle main section.in { opacity: 1; transform: none; }
 
     /* Framed things (cards, the figure panel, the project picker, the logo tiles) share one look:
        corners cut in pixel steps, like the moss, and a 1px edge that catches the light along the top
        and darkens towards the bottom. The edge and the fill are two stacked layers cut to the same
        stepped shape, the fill inset by 1px. */
-    section, .p-fig, .crest, .picker {
+    .p-fig, .crest, .picker {
       --s: 4px;
       --step: polygon(
         0 calc(2 * var(--s)), var(--s) calc(2 * var(--s)), var(--s) var(--s), calc(2 * var(--s)) var(--s), calc(2 * var(--s)) 0,
@@ -180,25 +223,29 @@
         calc(2 * var(--s)) 100%, calc(2 * var(--s)) calc(100% - var(--s)), var(--s) calc(100% - var(--s)), var(--s) calc(100% - 2 * var(--s)), 0 calc(100% - 2 * var(--s)));
       position: relative; isolation: isolate;
     }
-    section::before, .p-fig::before, .crest::before, .picker::before,
-    section::after, .p-fig::after, .crest::after, .picker::after {
+    .p-fig::before, .crest::before, .picker::before,
+    .p-fig::after, .crest::after, .picker::after {
       content: ""; position: absolute; z-index: -1; pointer-events: none; clip-path: var(--step);
     }
-    section::before, .p-fig::before, .crest::before, .picker::before {
+    .p-fig::before, .crest::before, .picker::before {
       inset: 0;
       background: linear-gradient(var(--edge-hi), var(--edge) 14rem, var(--edge) calc(100% - 6rem), var(--edge-lo));
     }
     .crest::before, .picker::before { background: linear-gradient(var(--edge-hi), var(--edge) 45%, var(--edge-lo)); }
-    section::after, .p-fig::after, .crest::after, .picker::after { inset: 1px; background: var(--fill); }
+    .p-fig::after, .crest::after, .picker::after { inset: 1px; background: var(--fill); }
 
-    /* Each section is a card: a plain, solid surface, so the text reads cleanly and the moss stays outside it */
-    section {
-      --fill: var(--card);
-      padding: 1.6rem 2rem 2rem;
-    }
-    h2 { font: 600 1.9rem/1.15 var(--serif); margin: 0 0 1.3rem; }
+
     .entry { display: grid; grid-template-columns: 5.5rem 1fr; gap: 0 1.5rem; align-items: baseline; margin-bottom: 1.9rem; }
     .entry:last-child { margin-bottom: 0; }
+    .sec-body .entry + .entry { border-top: 1px solid var(--line); padding-top: 1.9rem; }
+    #experience .entry > div { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: 4.5rem; }
+    #experience .entry > div > * { grid-column: 1; }
+    #experience .entry > div > .figures { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
+    #publications .entry > div { max-width: 52rem; }
+    /* the headline numbers beside a role */
+    .figures { display: flex; flex-wrap: wrap; gap: 1rem 2.75rem; margin: 0.9rem 0 1.1rem; }
+    .figures dt { font: 500 2.1rem/1 var(--serif); }
+    .figures dd { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.4; color: var(--muted); max-width: 12rem; }
     .when { font: 400 0.875rem/1.3 var(--mono); color: var(--muted); white-space: nowrap; }
     h3 { font: 600 1.35rem/1.3 var(--serif); margin: 0 0 0.15rem; }
     .role { color: var(--muted); font-size: 0.95rem; margin: 0 0 0.5rem; }
@@ -226,6 +273,8 @@
     .cite { font-size: 0.95rem; }
     .cite .me { font-weight: 600; }
     /* Education: logo on the left, school in the middle, dates on the right */
+    #education .sec-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 4.5rem; }
+    #education .school { margin: 0; }
     .school { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr) auto; gap: 0 1rem; align-items: start; margin-bottom: 1.5rem; }
     .school:last-child { margin-bottom: 0; }
     .school .role { margin: 0; }
@@ -241,16 +290,14 @@
     .about-body div p:last-child { margin-bottom: 0; }
 
     /* Projects: one project at a time, words on the left and a picture on the right */
-    .sec-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1.5rem; margin-bottom: 1.3rem; }
-    .sec-head h2 { margin: 0; }
-    .picker { display: flex; gap: 0.3rem; padding: 0.3rem; --fill: var(--bg); --s: 3px; }
+    .picker { display: flex; gap: 0.3rem; padding: 0.3rem; --fill: var(--card); --s: 3px; }
     .picker button {
       font: 500 0.9rem/1 var(--sans); color: var(--muted); background: none; border: 0; border-radius: 0;
       padding: 0.5rem 0.9rem; cursor: pointer;
     }
     .picker button:hover { color: var(--text); }
     .picker button[aria-selected="true"] { background: var(--card); color: var(--text); box-shadow: 0 0 0 1px var(--line); }
-    .project { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 2.5rem; align-items: start; }
+    .project { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 3rem 4.5rem; align-items: start; }
     .project[hidden] { display: none; }
     .project h3 { font-size: 2rem; line-height: 1.15; margin-bottom: 0.6rem; }
     /* the title and its year share a line: title on the left, year at the right edge of the text column */
@@ -260,7 +307,7 @@
     .project .qmr div { margin-bottom: 0.6rem; }
     .stack { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.1rem 0 1.1rem; padding: 0; list-style: none; }
     .stack li { font: 400 0.75rem/1 var(--mono); color: var(--text); border: 1px solid var(--line); border-radius: 0; padding: 0.4rem 0.7rem; background: var(--bg); }
-    .p-fig { margin: 0; padding: 1.25rem 1.4rem 1.1rem; --fill: var(--bg); }
+    .p-fig { margin: 0; padding: 1.25rem 1.4rem 1.1rem; --fill: var(--card); }
     .p-fig figcaption strong { display: block; font: 600 1.3rem/1.25 var(--serif); }
     .p-fig figcaption span { display: block; margin-top: 0.35rem; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
     .chart { position: relative; margin-top: 0.9rem; }
@@ -285,10 +332,8 @@
     .steps em { font: 400 0.7rem/1 var(--mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
     .steps li:not(.done) { color: var(--muted); }
 
-    .contact { margin: 0; }
-    .contact div { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.75rem; margin-bottom: 0.6rem; }
-    .contact div:last-child { margin-bottom: 0; }
-    .contact dt { font: 400 0.72rem/2.2 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .contact { margin: 0; display: flex; flex-wrap: wrap; gap: 1.5rem 4.5rem; }
+    .contact dt { font: 400 0.72rem/1.6 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
     .contact dd { margin: 0; overflow-wrap: anywhere; }
 
     footer {
@@ -302,33 +347,42 @@
     footer a { color: var(--muted); }
 
     /* Departure Mono is drawn on an 11px grid; every label sits at exactly 11px so it stays crisp */
-    .bar nav a, .resume, .when, .qmr dt, .contact dt, .tag, .stack li, .steps em, footer { font-size: 11px; letter-spacing: 0.08em; }
-    .resume span { letter-spacing: 0; }
+    .when, .qmr dt, .contact dt, .tag, .stack li, .steps em, footer { font-size: 11px; letter-spacing: 0.08em; }
 
-    @media (max-width: 76rem) {
-      #about, #education, #experience, #publications, #contact { grid-column: 1 / -1; grid-row: auto; }
-      #publications, #contact { grid-column: span 6; }
+    /* the top bar on narrower screens: tighter links first, then no section links at all */
+    @media (max-width: 75rem) {
+      .bar { gap: 1.25rem; }
+      .bar nav { gap: 1.1rem; }
+      .bar nav a { font-size: 0.92rem; }
     }
-    @media (max-width: 56rem) {
-      .about-body, .project { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 60rem) {
+      .bar nav { display: none; }
+      .bar-name { margin-right: auto; }
+    }
+    @media (max-width: 60rem) {
+      .about-body, .project, #experience .entry > div, #education .sec-body { grid-template-columns: minmax(0, 1fr); }
       .about-body { gap: 1.5rem; }
       .project { gap: 1.75rem; }
-      #publications, #contact { grid-column: 1 / -1; }
+      #experience .entry > div > .figures { grid-column: 1; grid-row: 3; margin: 0.9rem 0 1.1rem; }
+    }
+    @media (max-width: 56rem) {
+      .chapter + .chapter { margin-top: 9rem; }
+      .chapter section + section { margin-top: 4.5rem; }
+      .sec-head { margin-bottom: 2rem; }
     }
     @media (max-width: 40rem) {
-      main { gap: 1rem; padding-top: 2rem; }
-      section { padding: 1.25rem 1.1rem 1.4rem; }
-      h2 { font-size: 1.6rem; }
+      main { padding-top: 3.5rem; }
+      .chapter + .chapter { margin-top: 7rem; }
       .lede { font-size: 1.3rem; }
       .project h3 { font-size: 1.7rem; }
       .p-fig { padding: 1rem 0.9rem 0.8rem; }
-      .qmr div, .contact div { grid-template-columns: minmax(0, 1fr); gap: 0; }
-      .contact dt { line-height: 1.6; }
+      .qmr div { grid-template-columns: minmax(0, 1fr); gap: 0; }
       footer { padding-left: 0; padding-right: 0; }
       h1 { font-size: 2.8rem; margin-bottom: 1rem; }
       .intro { width: calc(100% - 2 * var(--pad)); }
       .bar { gap: 1rem; padding: 0 1rem; }
-      .resume::before { display: none; }
+      .bar-name { font-size: 1.2rem; white-space: nowrap; }
+      .resume { padding: 0.55rem 0.8rem; font-size: 0.9rem; margin-left: 0; }
       .bar nav { display: none; }
       .bar-name { margin-right: auto; }
       .entry { grid-template-columns: 1fr; }
@@ -340,17 +394,17 @@
   <div class="bar" id="top">
     <a class="bar-name" href="#top">Prithvi Hegde</a>
     <nav aria-label="Sections">
-      <a href="#about">About</a>
       <a href="#projects">Projects</a>
-      <a href="#publications">Publications</a>
       <a href="#experience">Experience</a>
+      <a href="#about">About</a>
       <a href="#education">Education</a>
+      <a href="#publications">Publications</a>
       <a href="#contact">Contact</a>
     </nav>
-    <a class="resume" href="resume.pdf">Résumé <span aria-hidden="true">&darr;</span></a>
+    <a class="resume" href="resume.pdf">Résumé <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg></a>
     <button class="theme" type="button" aria-label="Switch to the sand theme">
       <svg class="sun" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><rect x="4" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="3" y="2" width="3" height="1"/><rect x="2" y="3" width="5" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="2" y="4" width="5" height="1"/><rect x="8" y="4" width="1" height="1"/><rect x="2" y="5" width="5" height="1"/><rect x="3" y="6" width="3" height="1"/><rect x="1" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/></svg>
-      <svg class="moon" viewBox="0 0 9 9" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="4" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="1" y="2" width="3" height="1"/><rect x="1" y="3" width="2" height="1"/><rect x="1" y="4" width="2" height="1"/><rect x="1" y="5" width="2" height="1"/><rect x="1" y="6" width="3" height="1"/><rect x="2" y="7" width="3" height="1"/><rect x="8" y="7" width="1" height="1"/><rect x="3" y="8" width="5" height="1"/></svg>
+      <svg class="moon" viewBox="0 0 11 11" shape-rendering="crispEdges" aria-hidden="true"><rect x="4" y="0" width="2" height="1"/><rect x="2" y="1" width="3" height="1"/><rect x="9" y="1" width="1" height="1"/><rect x="1" y="2" width="3" height="1"/><rect x="8" y="2" width="3" height="1"/><rect x="1" y="3" width="3" height="1"/><rect x="9" y="3" width="1" height="1"/><rect x="0" y="4" width="4" height="1"/><rect x="0" y="5" width="4" height="1"/><rect x="0" y="6" width="5" height="1"/><rect x="1" y="7" width="5" height="1"/><rect x="1" y="8" width="8" height="1"/><rect x="2" y="9" width="6" height="1"/><rect x="4" y="10" width="3" height="1"/></svg>
     </button>
   </div>
 
@@ -359,174 +413,209 @@
       <h1>Prithvi Hegde</h1>
       <p class="pitch">MS Data Science student at the University of Washington. I work where machine learning meets human decision-making, especially models that can explain themselves. Prior to this, I spent two years building lending decision strategy and models at Wells Fargo.</p>
       <ul class="links">
-        <li><a href="mailto:prithvihegde123@gmail.com">Email</a></li>
-        <li><a href="https://github.com/PrithviHegde">GitHub</a></li>
-        <li><a href="https://www.linkedin.com/in/prithvihegde123">LinkedIn</a></li>
+        <li><a href="mailto:prithvihegde123@gmail.com" class="copy-email" title="Copy my email address"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><rect x="1.2" y="3" width="13.6" height="10" rx="1.5"/><path d="m1.8 4 6.2 5 6.2-5"/></svg><span class="label" aria-live="polite">Email</span></a></li>
+        <li><a href="https://github.com/PrithviHegde" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.01 8.01 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A8 8 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>GitHub<svg class="ext" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 2.5h5v5M9.5 2.5 2.5 9.5"/></svg><span class="sr-only"> (opens in a new tab)</span></a></li>
+        <li><a href="https://www.linkedin.com/in/prithvihegde123" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M2 0h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2Zm1.5 6v6.5h2V6h-2Zm1-2.8a1.1 1.1 0 1 0 0 2.2 1.1 1.1 0 0 0 0-2.2ZM7 6v6.5h2V9.2c0-.9.5-1.4 1.2-1.4s1.1.5 1.1 1.4v3.3h2V8.8c0-1.9-1-2.9-2.5-2.9-1 0-1.6.5-1.8 1V6H7Z"/></svg>LinkedIn<svg class="ext" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 2.5h5v5M9.5 2.5 2.5 9.5"/></svg><span class="sr-only"> (opens in a new tab)</span></a></li>
       </ul>
     </div>
+    <a class="scroll-cue" href="#projects" aria-label="Scroll to the rest of the page"><svg viewBox="0 0 7 8" shape-rendering="crispEdges" aria-hidden="true"><rect x="3" y="0" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="3" y="3" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="6" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="2" y="6" width="3" height="1"/><rect x="3" y="7" width="1" height="1"/></svg></a>
   </header>
 
   <main>
-    <section id="about" aria-labelledby="about-h">
-      <h2 id="about-h">About</h2>
-      <div class="about-body">
-      <p class="lede">Two questions I keep coming back to: When a model explains its decision, do people decide better, or just more confidently? And how do we know when a model's decision should take precedence over our own expertise and judgement?</p>
-      <div>
-      <p>I first ran into these questions at Wells Fargo, where I built underwriting strategy that changed real lending decisions at scale. Applicants with thin credit files are a good example: the model sometimes gave them a confident-looking score built on very little evidence, and sometimes declined them outright on that same lack of evidence. How do we tell those applicants apart, and know when to route them to human judgement? These are the kinds of questions I tried to answer as an analyst.</p>
-      <p>Those questions led me to Seattle, and a master's in data science at the University of Washington. Here, I want to build expertise in designing models that are well calibrated, explain their decisions, and learn when to defer to human judgement. I'm looking for internships, and for chances to talk with people working on human-in-the-loop decision problems. Away from work, I'm slowly getting to know the city, and I'm always down for a game of tennis.</p>
-      </div>
-      </div>
-    </section>
-
-    <section id="education" aria-labelledby="edu-h">
-      <h2 id="edu-h">Education</h2>
-      <article class="school">
-        <span class="crest"><img src="logos/uw.svg" alt="" width="44" height="44"></span>
-        <div>
-          <h3>University of Washington</h3>
-          <p class="role">MS, Data Science</p>
-        </div>
-        <p class="when">2026&ndash;2028<br>(expected)</p>
-      </article>
-      <article class="school">
-        <span class="crest"><img src="logos/bits-pilani.svg" alt="" width="44" height="44"></span>
-        <div>
-          <h3>BITS Pilani, Hyderabad</h3>
-          <p class="role">BE, Computer Science</p>
-        </div>
-        <p class="when">2020&ndash;2024</p>
-      </article>
-    </section>
-
-    <section id="projects" aria-labelledby="projects-h">
-      <div class="sec-head">
-        <h2 id="projects-h">Projects</h2>
-        <div class="picker" role="tablist" aria-label="Choose a project">
-          <button type="button" role="tab" id="tab-moss" aria-controls="p-moss" aria-selected="true">moss</button>
-          <button type="button" role="tab" id="tab-fd" aria-controls="p-fd" aria-selected="false" tabindex="-1">FilingDelta</button>
-        </div>
-      </div>
-
-      <article class="project" id="p-moss" role="tabpanel" aria-labelledby="tab-moss">
-        <div>
-          <div class="p-head">
-            <h3>moss</h3>
-            <p class="when">2026</p>
+    <div class="chapter" id="ch-projects">
+      <section id="projects" aria-labelledby="projects-h">
+        <header class="sec-head">
+          <h2 id="projects-h">Projects</h2>
+          <div class="picker" role="tablist" aria-label="Choose a project">
+            <button type="button" role="tab" id="tab-moss" aria-controls="p-moss" aria-selected="true">moss</button>
+            <button type="button" role="tab" id="tab-fd" aria-controls="p-fd" aria-selected="false" tabindex="-1">FilingDelta</button>
           </div>
-        <dl class="qmr">
-          <div><dt>Question</dt><dd>Why do plants spread faster than an average dispersal distance predicts? (Reid's paradox: oak reclaimed Britain far too fast after the last ice age.)</dd></div>
-          <div><dt>Method</dt><dd>Simulated spread under Gaussian, exponential and lognormal dispersal kernels with the same mean distance; modelled when ferns appear with Weibull waiting times.</dd></div>
-          <div><dt>Result</dt><dd>After 40 generations the fat-tailed lognormal colony reaches 14&times; farther than the Gaussian one, and it is still speeding up.</dd></div>
-        </dl>
-          <ul class="stack" aria-label="Built with">
-            <li>Python</li><li>NumPy</li><li>SciPy</li><li>Matplotlib</li><li>JavaScript canvas</li>
-          </ul>
-          <p class="project-links"><a href="https://github.com/PrithviHegde/moss">Notebook and write-up</a></p>
-        </div>
-        <figure class="p-fig">
-          <figcaption>
-            <strong>Same average spore, 14&times; the reach of the Gaussian, and still speeding up</strong>
-            <span>Farthest colony after each generation, in multiples of the mean spore distance. Line: median of 20 runs. Band: middle 80% of runs.</span>
-          </figcaption>
-          <div class="chart" id="race" role="img" aria-label="Line chart of how far each colony has spread over 40 generations. The lognormal colony reaches 627 mean distances and is still speeding up; the exponential reaches 65 and the Gaussian 44."></div>
-        </figure>
-      </article>
+        </header>
+        <div class="sec-body">
 
-      <article class="project" id="p-fd" role="tabpanel" aria-labelledby="tab-fd" hidden>
-        <div>
-          <div class="p-head">
-            <h3>FilingDelta <span class="tag">In progress</span></h3>
-            <p class="when">2026&ndash;</p>
+          <article class="project" id="p-moss" role="tabpanel" aria-labelledby="tab-moss">
+            <div>
+              <div class="p-head">
+                <h3>moss</h3>
+                <p class="when">2026</p>
+              </div>
+            <dl class="qmr">
+              <div><dt>Question</dt><dd>Why do plants spread faster than an average dispersal distance predicts? (Reid's paradox: oak reclaimed Britain far too fast after the last ice age.)</dd></div>
+              <div><dt>Method</dt><dd>Simulated spread under Gaussian, exponential and lognormal dispersal kernels with the same mean distance; modelled when ferns appear with Weibull waiting times.</dd></div>
+              <div><dt>Result</dt><dd>After 40 generations the fat-tailed lognormal colony reaches 14&times; farther than the Gaussian one, and it is still speeding up.</dd></div>
+            </dl>
+              <ul class="stack" aria-label="Built with">
+                <li>Python</li><li>NumPy</li><li>SciPy</li><li>Matplotlib</li><li>JavaScript canvas</li>
+              </ul>
+              <p class="project-links"><a href="https://github.com/PrithviHegde/moss" target="_blank" rel="noopener">Notebook and write-up</a></p>
+            </div>
+            <figure class="p-fig">
+              <figcaption>
+                <strong>Same average spore, 14&times; the reach of the Gaussian, and still speeding up</strong>
+                <span>Farthest colony after each generation, in multiples of the mean spore distance. Line: median of 20 runs. Band: middle 80% of runs.</span>
+              </figcaption>
+              <div class="chart" id="race" role="img" aria-label="Line chart of how far each colony has spread over 40 generations. The lognormal colony reaches 627 mean distances and is still speeding up; the exponential reaches 65 and the Gaussian 44."></div>
+            </figure>
+          </article>
+
+          <article class="project" id="p-fd" role="tabpanel" aria-labelledby="tab-fd" hidden>
+            <div>
+              <div class="p-head">
+                <h3>FilingDelta <span class="tag">In progress</span></h3>
+                <p class="when">2026&ndash;</p>
+              </div>
+            <dl class="qmr">
+              <div><dt>Question</dt><dd>When management changes the wording of a company's SEC filings, does the stock price react, and how quickly?</dd></div>
+              <div><dt>Method</dt><dd>A pipeline over 88 quarterly and annual filings from 11 large caps: extract and clean the Management's Discussion &amp; Analysis, pair filings year-over-year and quarter-over-quarter, and time each event by when the SEC accepted it rather than the posted filing date.</dd></div>
+              <div><dt>Status</dt><dd>Data pipeline done (78 filing pairs). Paragraph-level diffing and the event study come next.</dd></div>
+            </dl>
+              <ul class="stack" aria-label="Built with">
+                <li>Python</li><li>pandas</li><li>edgartools</li><li>BeautifulSoup</li><li>RapidFuzz</li><li>yfinance</li>
+              </ul>
+              <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta" target="_blank" rel="noopener">Code and notes</a></p>
+            </div>
+            <figure class="p-fig">
+              <figcaption>
+                <strong>Where the pipeline stands</strong>
+                <span>The data side is built. The comparison and the price study come next.</span>
+              </figcaption>
+              <div class="counts">
+                <div><b>11</b><span>large caps</span></div>
+                <div><b>88</b><span>quarterly and annual filings</span></div>
+                <div><b>78</b><span>filing pairs</span></div>
+              </div>
+              <ol class="steps">
+                <li class="done"><span>Fetch the filings from the SEC</span><em>Done</em></li>
+                <li class="done"><span>Extract and clean the Management's Discussion &amp; Analysis</span><em>Done</em></li>
+                <li class="done"><span>Pair filings year-over-year and quarter-over-quarter</span><em>Done</em></li>
+                <li><span>Diff the paired filings paragraph by paragraph</span><em>Next</em></li>
+                <li><span>Event study: does the price react, and how quickly?</span><em>Next</em></li>
+              </ol>
+            </figure>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <div class="chapter" id="ch-experience">
+      <section id="experience" aria-labelledby="exp-h">
+        <header class="sec-head">
+          <h2 id="exp-h">Experience</h2>
+        </header>
+        <div class="sec-body">
+
+          <article class="entry">
+            <div class="when">2024&ndash;2026</div>
+            <div>
+              <h3>Wells Fargo</h3>
+              <p class="role">Analyst, Personal Lending Decision Science &middot; Hyderabad</p>
+              <dl class="figures">
+                <div><dt>$250M</dt><dd>projected added loan bookings, FY&rsquo;26</dd></div>
+                <div><dt>10M+</dt><dd>applications the new rules were simulated on</dd></div>
+              </dl>
+              <ul>
+                <li>Rebuilt the personal lending underwriting strategy around a new LightGBM score (a 4.9-point KS lift over the incumbent model), simulating the new decision rules on 10M+ applications.</li>
+                <li>Launched it as a 50/50 champion&ndash;challenger test, projected to add $250M in FY&rsquo;26 loan bookings at marginal extra risk.</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="entry">
+            <div class="when">2024</div>
+            <div>
+              <h3>Aurigo Software Technologies</h3>
+              <p class="role">Software Development Engineering Intern &middot; Bangalore</p>
+              <p>Built C#/.NET dashboards for a large U.S. government client and fixed data-integrity and API bugs during hypercare.</p>
+            </div>
+          </article>
+
+          <article class="entry">
+            <div class="when">2022</div>
+            <div>
+              <h3>Agrix Agro</h3>
+              <p class="role">Data Science Intern &middot; Remote</p>
+              <p>Clustered 700K+ tractor GPS records with DBSCAN to tell fields from roads, which improved tilling efficiency by 15% through better routing.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <div class="chapter" id="ch-about">
+      <section id="about" aria-labelledby="about-h">
+        <header class="sec-head">
+          <h2 id="about-h">About</h2>
+        </header>
+        <div class="sec-body">
+          <div class="about-body">
+          <p class="lede">Two questions I keep coming back to: When a model explains its decision, do people decide better, or just more confidently? And how do we know when a model's decision should take precedence over our own expertise and judgement?</p>
+          <div>
+          <p>I first ran into these questions at Wells Fargo, where I built underwriting strategy that changed real lending decisions at scale. Applicants with thin credit files are a good example: the model sometimes gave them a confident-looking score built on very little evidence, and sometimes declined them outright on that same lack of evidence. How do we tell those applicants apart, and know when to route them to human judgement? These are the kinds of questions I tried to answer as an analyst.</p>
+          <p>Those questions led me to Seattle, and a master's in data science at the University of Washington. Here, I want to build expertise in designing models that are well calibrated, explain their decisions, and learn when to defer to human judgement. I'm looking for internships, and for chances to talk with people working on human-in-the-loop decision problems. Away from work, I'm slowly getting to know the city, and I'm always down for a game of tennis.</p>
           </div>
-        <dl class="qmr">
-          <div><dt>Question</dt><dd>When management changes the wording of a company's SEC filings, does the stock price react, and how quickly?</dd></div>
-          <div><dt>Method</dt><dd>A pipeline over 88 quarterly and annual filings from 11 large caps: extract and clean the Management's Discussion &amp; Analysis, pair filings year-over-year and quarter-over-quarter, and time each event by when the SEC accepted it rather than the posted filing date.</dd></div>
-          <div><dt>Status</dt><dd>Data pipeline done (78 filing pairs). Paragraph-level diffing and the event study come next.</dd></div>
-        </dl>
-          <ul class="stack" aria-label="Built with">
-            <li>Python</li><li>pandas</li><li>edgartools</li><li>BeautifulSoup</li><li>RapidFuzz</li><li>yfinance</li>
-          </ul>
-          <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta">Code and notes</a></p>
-        </div>
-        <figure class="p-fig">
-          <figcaption>
-            <strong>Where the pipeline stands</strong>
-            <span>The data side is built. The comparison and the price study come next.</span>
-          </figcaption>
-          <div class="counts">
-            <div><b>11</b><span>large caps</span></div>
-            <div><b>88</b><span>quarterly and annual filings</span></div>
-            <div><b>78</b><span>filing pairs</span></div>
           </div>
-          <ol class="steps">
-            <li class="done"><span>Fetch the filings from the SEC</span><em>Done</em></li>
-            <li class="done"><span>Extract and clean the Management's Discussion &amp; Analysis</span><em>Done</em></li>
-            <li class="done"><span>Pair filings year-over-year and quarter-over-quarter</span><em>Done</em></li>
-            <li><span>Diff the paired filings paragraph by paragraph</span><em>Next</em></li>
-            <li><span>Event study: does the price react, and how quickly?</span><em>Next</em></li>
-          </ol>
-        </figure>
-      </article>
-    </section>
-
-    <section id="experience" aria-labelledby="exp-h">
-      <h2 id="exp-h">Experience</h2>
-
-      <article class="entry">
-        <div class="when">2024&ndash;2026</div>
-        <div>
-          <h3>Wells Fargo</h3>
-          <p class="role">Analyst, Personal Lending Decision Science &middot; Hyderabad</p>
-          <ul>
-            <li>Rebuilt the personal lending underwriting strategy around a new LightGBM score (a 4.9-point KS lift over the incumbent model), simulating the new decision rules on 10M+ applications.</li>
-            <li>Launched it as a 50/50 champion&ndash;challenger test, projected to add $250M in FY&rsquo;26 loan bookings at marginal extra risk.</li>
-          </ul>
         </div>
-      </article>
+      </section>
 
-      <article class="entry">
-        <div class="when">2024</div>
-        <div>
-          <h3>Aurigo Software Technologies</h3>
-          <p class="role">Software Development Engineering Intern &middot; Bangalore</p>
-          <p>Built C#/.NET dashboards for a large U.S. government client and fixed data-integrity and API bugs during hypercare.</p>
+      <section id="education" aria-labelledby="edu-h">
+        <header class="sec-head">
+          <h2 id="edu-h">Education</h2>
+        </header>
+        <div class="sec-body">
+          <article class="school">
+            <span class="crest"><img src="logos/uw.svg" alt="" width="44" height="44"></span>
+            <div>
+              <h3>University of Washington</h3>
+              <p class="role">MS, Data Science</p>
+            </div>
+            <p class="when">2026&ndash;2028<br>(expected)</p>
+          </article>
+          <article class="school">
+            <span class="crest"><img src="logos/bits-pilani.svg" alt="" width="44" height="44"></span>
+            <div>
+              <h3>BITS Pilani, Hyderabad</h3>
+              <p class="role">BE, Computer Science</p>
+            </div>
+            <p class="when">2020&ndash;2024</p>
+          </article>
         </div>
-      </article>
+      </section>
+    </div>
 
-      <article class="entry">
-        <div class="when">2022</div>
-        <div>
-          <h3>Agrix Agro</h3>
-          <p class="role">Data Science Intern &middot; Remote</p>
-          <p>Clustered 700K+ tractor GPS records with DBSCAN to tell fields from roads, which improved tilling efficiency by 15% through better routing.</p>
+    <div class="chapter" id="ch-end">
+      <section id="publications" aria-labelledby="pubs-h">
+        <header class="sec-head">
+          <h2 id="pubs-h">Publications</h2>
+        </header>
+        <div class="sec-body">
+          <article class="entry">
+            <div class="when">2023</div>
+            <div>
+              <h3>Secure and Efficient Key Management for Deduplicated Cloud Storage Systems</h3>
+              <p class="cite">J. Dave, A. Kanodia, R. Srivastava, K. Singh, <span class="me">P. Hegde</span>, H. Desai. <em>16th International Conference on Security of Information and Networks (SIN)</em>, 2023. <a href="https://doi.org/10.1109/SIN60469.2023.10475109" target="_blank" rel="noopener">DOI</a></p>
+            </div>
+          </article>
         </div>
-      </article>
-    </section>
+      </section>
 
-    <section id="publications" aria-labelledby="pubs-h">
-      <h2 id="pubs-h">Publications</h2>
-      <article class="entry">
-        <div class="when">2023</div>
-        <div>
-          <h3>Secure and Efficient Key Management for Deduplicated Cloud Storage Systems</h3>
-          <p class="cite">J. Dave, A. Kanodia, R. Srivastava, K. Singh, <span class="me">P. Hegde</span>, H. Desai. <em>16th International Conference on Security of Information and Networks (SIN)</em>, 2023. <a href="https://doi.org/10.1109/SIN60469.2023.10475109">DOI</a></p>
+      <section id="contact" aria-labelledby="contact-h">
+        <header class="sec-head">
+          <h2 id="contact-h">Contact</h2>
+        </header>
+        <div class="sec-body">
+          <dl class="contact">
+            <div><dt>Email</dt><dd><a href="mailto:prithvihegde123@gmail.com">prithvihegde123@gmail.com</a></dd></div>
+            <div><dt>GitHub</dt><dd><a href="https://github.com/PrithviHegde" target="_blank" rel="noopener">github.com/PrithviHegde</a></dd></div>
+            <div><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/prithvihegde123" target="_blank" rel="noopener">linkedin.com/in/prithvihegde123</a></dd></div>
+          </dl>
         </div>
-      </article>
-    </section>
+      </section>
 
-    <section id="contact" aria-labelledby="contact-h">
-      <h2 id="contact-h">Contact</h2>
-      <dl class="contact">
-        <div><dt>Email</dt><dd><a href="mailto:prithvihegde123@gmail.com">prithvihegde123@gmail.com</a></dd></div>
-        <div><dt>GitHub</dt><dd><a href="https://github.com/PrithviHegde">github.com/PrithviHegde</a></dd></div>
-        <div><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/prithvihegde123">linkedin.com/in/prithvihegde123</a></dd></div>
-      </dl>
-    </section>
-
-    <footer>
-      <span>&copy; 2026 Prithvi Hegde</span>
-      <span><a href="https://github.com/PrithviHegde/moss">About the moss</a></span>
-    </footer>
+      <footer>
+        <span>&copy; 2026 Prithvi Hegde</span>
+        <span><a href="https://github.com/PrithviHegde/moss" target="_blank" rel="noopener">About the moss</a></span>
+      </footer>
+    </div>
   </main>
   <script>
     // the theme toggle: dark bark by default, plain sand on request; remembered per visitor
@@ -549,10 +638,46 @@
       new IntersectionObserver(function (e) { bar.classList.toggle('scrolled', !e[0].isIntersecting); },
         { rootMargin: '-52px 0px 0px 0px' }).observe(name);
     })();
+    // cards settle into place as their chapter scrolls into view (skipped if motion is unwelcome)
+    (function () {
+      if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      document.documentElement.classList.add('settle');
+      var io = new IntersectionObserver(function (es) {
+        es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+      }, { rootMargin: '0px 0px -8% 0px' });
+      document.querySelectorAll('main section').forEach(function (sec) { io.observe(sec); });
+    })();
+    // the email button copies the address and says so. If the browser refuses the clipboard, it tries
+    // the older copy command, and only if that fails too does it open the mail app instead.
+    (function () {
+      var a = document.querySelector('.copy-email'); if (!a) return;
+      var label = a.querySelector('.label'), address = a.getAttribute('href').replace('mailto:', ''), timer;
+      function oldCopy() {
+        var t = document.createElement('textarea');
+        t.value = address; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;opacity:0';
+        document.body.appendChild(t); t.select();
+        var ok = false; try { ok = document.execCommand('copy'); } catch (err) {}
+        t.remove(); a.focus();
+        return ok;
+      }
+      function done() {
+        a.classList.add('copied'); label.textContent = 'Copied';
+        clearTimeout(timer);
+        timer = setTimeout(function () { a.classList.remove('copied'); label.textContent = 'Email'; }, 2000);
+      }
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var write = navigator.clipboard ? navigator.clipboard.writeText(address) : Promise.reject();
+        write.then(done, function () { if (oldCopy()) done(); else location.href = a.href; });
+      });
+    })();
+    // the first screen's scroll cue fades once you scroll
+    addEventListener('scroll', function () { document.documentElement.classList.toggle('past-top', scrollY > 40); }, { passive: true });
     // mark the section being read: the last one whose top has passed a line a third of the way down
     (function () {
       var links = [].slice.call(document.querySelectorAll('.bar nav a'));
-      var pairs = links.map(function (a) { return [a, document.querySelector(a.getAttribute('href'))]; })
+      // each link is tracked by the chapter its section sits in (cards are centred within a chapter)
+      var pairs = links.map(function (a) { var el = document.querySelector(a.getAttribute('href')); return [a, el && (el.closest('.chapter') || el)]; })
         .filter(function (p) { return p[1]; });
       var queued = false;
       function update() {
@@ -606,7 +731,7 @@
       }
       function draw() {
         var w = el.clientWidth; if (w < 200) return;   // too narrow to draw (mid-resize)
-        var h = Math.round(Math.max(230, Math.min(340, w * 0.5)));
+        var h = Math.round(Math.max(240, Math.min(480, w * 0.56)));
         var m = { l: 34, r: 104, t: 18, b: 38 }, pw = w - m.l - m.r, ph = h - m.t - m.b;
         function X(g) { return m.l + pw * g / G; }
         function Y(v) { return m.t + ph * (1 - v / YMAX); }
