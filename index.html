@@ -331,6 +331,8 @@
     .steps .done::before { background: var(--viz-hi); border-color: var(--viz-hi); }
     .steps em { font: 400 0.7rem/1 var(--mono); font-style: normal; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
     .steps li:not(.done) { color: var(--muted); }
+    .steps li.now { color: inherit; }
+    .steps .now::before { border-color: var(--viz-hi); background: linear-gradient(90deg, var(--viz-hi) 50%, transparent 50%); }
 
     .contact { margin: 0; display: flex; flex-wrap: wrap; gap: 1.5rem 4.5rem; }
     .contact dt { font: 400 0.72rem/1.6 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
@@ -466,30 +468,30 @@
               </div>
             <dl class="qmr">
               <div><dt>Question</dt><dd>When management changes the wording of a company's SEC filings, does the stock price react, and how quickly?</dd></div>
-              <div><dt>Method</dt><dd>A pipeline over 88 quarterly and annual filings from 11 large caps: extract and clean the Management's Discussion &amp; Analysis, pair filings year-over-year and quarter-over-quarter, and time each event by when the SEC accepted it rather than the posted filing date.</dd></div>
-              <div><dt>Status</dt><dd>Data pipeline done (78 filing pairs). Paragraph-level diffing and the event study come next.</dd></div>
+              <div><dt>Method</dt><dd>Extract the Management's Discussion &amp; Analysis from 88 filings of 11 large caps, match each paragraph to its earlier version with sentence embeddings, and have a local LLM label every change by topic, materiality and direction. Abnormal returns are timed to when the SEC accepted each filing, with the earnings release measured separately so the two can be told apart.</dd></div>
+              <div><dt>Status</dt><dd>9,687 paragraph changes found and abnormal returns computed. Labelling the changes with a local LLM, checked against a 50-item gold set labelled by two independent annotators. The price test comes next.</dd></div>
             </dl>
               <ul class="stack" aria-label="Built with">
-                <li>Python</li><li>pandas</li><li>edgartools</li><li>BeautifulSoup</li><li>RapidFuzz</li><li>yfinance</li>
+                <li>Python</li><li>pandas</li><li>edgartools</li><li>sentence-transformers</li><li>Ollama</li><li>Pydantic</li><li>SciPy</li><li>yfinance</li>
               </ul>
               <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta" target="_blank" rel="noopener">Code and notes</a></p>
             </div>
             <figure class="p-fig">
               <figcaption>
                 <strong>Where the pipeline stands</strong>
-                <span>The data side is built. The comparison and the price study come next.</span>
+                <span>The filings are compared and the price reactions measured. Labelling the changes is under way.</span>
               </figcaption>
               <div class="counts">
-                <div><b>11</b><span>large caps</span></div>
-                <div><b>88</b><span>quarterly and annual filings</span></div>
+                <div><b>88</b><span>filings from 11 large caps</span></div>
                 <div><b>78</b><span>filing pairs</span></div>
+                <div><b>9,687</b><span>paragraph changes</span></div>
               </div>
               <ol class="steps">
-                <li class="done"><span>Fetch the filings from the SEC</span><em>Done</em></li>
-                <li class="done"><span>Extract and clean the Management's Discussion &amp; Analysis</span><em>Done</em></li>
-                <li class="done"><span>Pair filings year-over-year and quarter-over-quarter</span><em>Done</em></li>
-                <li><span>Diff the paired filings paragraph by paragraph</span><em>Next</em></li>
-                <li><span>Event study: does the price react, and how quickly?</span><em>Next</em></li>
+                <li class="done"><span>Fetch the filings and extract the Management's Discussion &amp; Analysis</span><em>Done</em></li>
+                <li class="done"><span>Match paragraphs across filings with sentence embeddings</span><em>Done</em></li>
+                <li class="done"><span>Abnormal returns around each filing and each earnings release</span><em>Done</em></li>
+                <li class="now"><span>Label each change with a local LLM, scored against a hand-labelled gold set</span><em>Now</em></li>
+                <li><span>Price test: do material changes move the stock, and how quickly?</span><em>Next</em></li>
               </ol>
             </figure>
           </article>
