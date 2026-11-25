@@ -463,35 +463,35 @@
           <article class="project" id="p-fd" role="tabpanel" aria-labelledby="tab-fd" hidden>
             <div>
               <div class="p-head">
-                <h3>FilingDelta <span class="tag">In progress</span></h3>
-                <p class="when">2026&ndash;</p>
+                <h3>FilingDelta</h3>
+                <p class="when">2026</p>
               </div>
             <dl class="qmr">
               <div><dt>Question</dt><dd>When management changes the wording of a company's SEC filings, does the stock price react, and how quickly?</dd></div>
-              <div><dt>Method</dt><dd>Extract the Management's Discussion &amp; Analysis from 88 filings of 11 large caps, match each paragraph to its earlier version with sentence embeddings, and have a local LLM label every change by topic, materiality and direction. Abnormal returns are timed to when the SEC accepted each filing, with the earnings release measured separately so the two can be told apart.</dd></div>
-              <div><dt>Status</dt><dd>9,687 paragraph changes found and abnormal returns computed. Labelling the changes with a local LLM, checked against a 50-item gold set labelled by two independent annotators. The price test comes next.</dd></div>
+              <div><dt>Method</dt><dd>Extract the Management's Discussion &amp; Analysis from 88 filings of 11 large caps and match each paragraph to its earlier version with sentence embeddings. A local LLM (qwen3.5:9b via Ollama, 13.6 h on a laptop) labelled all 9,687 language changes, agreeing with a 50-item gold set from two blind annotators about as well as they agreed with each other (kappa 0.76 on topic, 0.91 on forward-looking). Abnormal returns are timed to when the SEC accepted each filing, with the earnings release measured separately.</dd></div>
+              <div><dt>Finding</dt><dd>For large caps, a 10-Q or 10-K on its own moves the stock no more than an ordinary day (mean |SCAR| 0.81, against 0.80 expected with no news; 1.97 at earnings releases). The information is priced at the earnings release, before the filing, so language changes can't predict filing-day returns.</dd></div>
             </dl>
               <ul class="stack" aria-label="Built with">
-                <li>Python</li><li>pandas</li><li>edgartools</li><li>sentence-transformers</li><li>Ollama</li><li>Pydantic</li><li>SciPy</li><li>yfinance</li>
+                <li>Python</li><li>edgartools</li><li>sentence-transformers</li><li>RapidFuzz</li><li>SciPy</li><li>Ollama</li><li>Pydantic</li><li>pandas</li><li>yfinance</li><li>matplotlib</li>
               </ul>
               <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta" target="_blank" rel="noopener">Code and notes</a></p>
             </div>
             <figure class="p-fig">
               <figcaption>
-                <strong>Where the pipeline stands</strong>
-                <span>The filings are compared and the price reactions measured. Labelling the changes is under way.</span>
+                <strong>A filing on its own moves the stock like an ordinary day</strong>
               </figcaption>
+              <div class="chart" id="news" role="img" aria-label="Strip chart of the size of each two-day abnormal price move. The 36 filings without an earnings release average 0.81, the same as the 0.80 expected on a day with no news; the 56 earnings releases average 1.97."></div>
               <div class="counts">
                 <div><b>88</b><span>filings from 11 large caps</span></div>
-                <div><b>78</b><span>filing pairs</span></div>
-                <div><b>9,687</b><span>paragraph changes</span></div>
+                <div><b>56</b><span>tested, 36 not on an earnings day</span></div>
+                <div><b>9,687</b><span>language changes classified</span></div>
               </div>
               <ol class="steps">
                 <li class="done"><span>Fetch the filings and extract the Management's Discussion &amp; Analysis</span><em>Done</em></li>
                 <li class="done"><span>Match paragraphs across filings with sentence embeddings</span><em>Done</em></li>
+                <li class="done"><span>Classify all changes with a local LLM, scored against a hand-labelled gold set</span><em>Done</em></li>
                 <li class="done"><span>Abnormal returns around each filing and each earnings release</span><em>Done</em></li>
-                <li class="now"><span>Label each change with a local LLM, scored against a hand-labelled gold set</span><em>Now</em></li>
-                <li><span>Price test: do material changes move the stock, and how quickly?</span><em>Next</em></li>
+                <li class="done"><span>Price test: do material changes move the stock, and how quickly?</span><em>Done</em></li>
               </ol>
             </figure>
           </article>
@@ -780,6 +780,47 @@
           tip.style.left = Math.max(0, left) + 'px'; tip.style.top = m.t + 'px';
         });
         hit.addEventListener('pointerleave', function () { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; });
+      }
+      draw();
+      if ('ResizeObserver' in window) { var lastW = el.clientWidth; new ResizeObserver(function () { if (el.clientWidth !== lastW) { lastW = el.clientWidth; draw(); } }).observe(el); }
+    })();
+    // FilingDelta: size of each filing's and each earnings release's two-day abnormal move (|SCAR|,
+    // days 0 to +1, from the repo's data/processed/filing_features.csv). A no-news day averages 0.80.
+    (function () {
+      var el = document.getElementById('news'); if (!el) return;
+      var DATA = {"filing":[0.02,0.05,0.07,0.09,0.19,0.2,0.22,0.24,0.26,0.28,0.3,0.45,0.45,0.49,0.55,0.65,0.7,0.72,0.9,0.94,0.94,1.06,1.08,1.11,1.11,1.12,1.15,1.3,1.33,1.33,1.35,1.37,1.41,1.42,1.54,2.81],"earnings":[0.02,0.07,0.13,0.18,0.18,0.31,0.41,0.44,0.49,0.49,0.5,0.53,0.54,0.59,0.74,0.8,0.85,0.89,0.93,0.96,1.05,1.14,1.24,1.39,1.54,1.72,1.75,1.76,1.76,1.85,1.88,1.89,1.93,1.94,1.96,2.11,2.16,2.25,2.29,2.4,2.42,2.73,2.77,3.02,3.09,3.12,3.25,3.56,3.57,3.79,4.1,4.27,4.97,5.58,6.57,7.69]};
+      var ROWS = [['filing', '10-Q or 10-K, no earnings release', '--viz-hi'], ['earnings', 'Earnings release', '--viz-low']];
+      var NS = 'http://www.w3.org/2000/svg', XMAX = 8, NO_NEWS = 0.8;
+      function node(name, attrs, parent) {
+        var n = document.createElementNS(NS, name);
+        for (var k in attrs) n.setAttribute(k, attrs[k]);
+        if (parent) parent.appendChild(n);
+        return n;
+      }
+      function jitter(i) { var x = Math.sin(i * 12.9898) * 43758.5453; return x - Math.floor(x) - 0.5; }   // fixed, so redraws match
+      function draw() {
+        var w = el.clientWidth; if (w < 200) return;
+        var rowH = 66, m = { l: 4, r: 8, t: 30, b: 38 }, h = m.t + rowH * ROWS.length + m.b, pw = w - m.l - m.r;
+        function X(v) { return m.l + pw * Math.min(v, XMAX) / XMAX; }
+        el.textContent = '';
+        var svg = node('svg', { viewBox: '0 0 ' + w + ' ' + h, height: h, 'aria-hidden': 'true' }, el);
+        [0, 2, 4, 6, 8].forEach(function (v) {
+          node('line', { x1: X(v), x2: X(v), y1: m.t, y2: m.t + rowH * ROWS.length, stroke: 'var(--line)', 'stroke-width': 1 }, svg);
+          node('text', { x: X(v), y: m.t + rowH * ROWS.length + 16, 'text-anchor': v ? 'middle' : 'start' }, svg).textContent = v;
+        });
+        node('text', { x: m.l + pw / 2, y: h - 2, 'text-anchor': 'middle' }, svg).textContent = 'Size of the two-day abnormal move (|SCAR|)';
+        node('line', { x1: X(NO_NEWS), x2: X(NO_NEWS), y1: 4, y2: m.t + rowH * ROWS.length, stroke: 'var(--muted)', 'stroke-width': 1, 'stroke-dasharray': '3 3' }, svg);
+        node('text', { x: X(NO_NEWS) + 5, y: 12 }, svg).textContent = 'no-news day: 0.80';
+        ROWS.forEach(function (r, n) {
+          var vals = DATA[r[0]], top = m.t + rowH * n, mid = top + 40, col = 'var(' + r[2] + ')';
+          var mean = vals.reduce(function (a, b) { return a + b; }, 0) / vals.length;
+          // the row's name, count and mean on one line above its dots, clear of everything else
+          node('text', { x: X(NO_NEWS) + 5, y: top + 16, 'class': 'end' }, svg).textContent = r[1] + ', ' + vals.length + ': mean ' + mean.toFixed(2);
+          vals.forEach(function (v, i) {
+            node('circle', { cx: X(v), cy: mid + jitter(i + n * 100) * 20, r: 3.6, fill: col, 'fill-opacity': 0.8 }, svg);
+          });
+          node('line', { x1: X(mean), x2: X(mean), y1: mid - 15, y2: mid + 15, stroke: 'var(--text)', 'stroke-width': 2 }, svg);
+        });
       }
       draw();
       if ('ResizeObserver' in window) { var lastW = el.clientWidth; new ResizeObserver(function () { if (el.clientWidth !== lastW) { lastW = el.clientWidth; draw(); } }).observe(el); }
