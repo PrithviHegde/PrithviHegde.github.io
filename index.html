@@ -241,12 +241,12 @@
     #experience .entry > div { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: 4.5rem; }
     #experience .entry > div > * { grid-column: 1; }
     #experience .entry > div > .figures { grid-column: 2; grid-row: 1 / span 4; align-self: center; margin: 0; }
-    #publications .entry > div { max-width: 52rem; }
     /* the headline numbers beside a role */
     .figures { display: flex; flex-wrap: wrap; gap: 1rem 2.75rem; margin: 0.9rem 0 1.1rem; }
     .figures dt { font: 500 2.1rem/1 var(--serif); }
     .figures dd { margin: 0.35rem 0 0; font-size: 0.85rem; line-height: 1.4; color: var(--muted); max-width: 12rem; }
-    .when { font: 400 0.875rem/1.3 var(--mono); color: var(--muted); white-space: nowrap; }
+    /* dates are read, not just glanced at: the reading face at body size, with even-width digits */
+    .when { font: 400 0.95rem/1.3 var(--sans); font-variant-numeric: tabular-nums lining-nums; color: var(--muted); white-space: nowrap; }
     h3 { font: 600 1.35rem/1.3 var(--serif); margin: 0 0 0.15rem; }
     .role { color: var(--muted); font-size: 0.95rem; margin: 0 0 0.5rem; }
     .entry p:last-child { margin-bottom: 0; }
@@ -254,8 +254,8 @@
     .entry li { margin-bottom: 0.35rem; }
     .entry li::marker { color: var(--muted); }
     .qmr { margin: 0.5rem 0 0.6rem; }
-    .qmr div { display: grid; grid-template-columns: 4.6rem 1fr; gap: 0.75rem; margin-bottom: 0.35rem; }
-    .qmr dt { font: 400 0.72rem/1.95 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .qmr div { display: grid; grid-template-columns: 5.2rem 1fr; gap: 0.9rem; margin-bottom: 0.35rem; }
+    .qmr dt { font: 400 0.95rem/1.65 var(--sans); color: var(--muted); }   /* read like the dates beside each role */
     .qmr dd { margin: 0; }
     .tag {
       display: inline-block;
@@ -272,6 +272,14 @@
     .project-links { font-size: 0.95rem; margin: 0; }
     .cite { font-size: 0.95rem; }
     .cite .me { font-weight: 600; }
+    /* a paper listed under the school it came from */
+    .paper { margin: 0.9rem 0 0; }
+    .paper-item { padding-left: 0.9rem; border-left: 2px solid var(--viz-hi); }   /* the rule marks the paper, not its heading */
+    .paper p { margin: 0; }
+    .paper-label { font: 600 1.3rem/1.2 var(--serif); color: var(--text); margin-bottom: 0.4rem !important; }
+    .paper-title { font: 500 1.1rem/1.35 var(--serif); margin-bottom: 0.3rem !important; }
+    .paper-title a { color: var(--text); }
+    .paper .cite { color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
     /* Education: logo on the left, school in the middle, dates on the right */
     #education .sec-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 4.5rem; }
     #education .school { margin: 0; }
@@ -306,7 +314,11 @@
     .project .when { margin: 0; }
     .project .qmr div { margin-bottom: 0.6rem; }
     .stack { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.1rem 0 1.1rem; padding: 0; list-style: none; }
-    .stack li { font: 400 0.75rem/1 var(--mono); color: var(--text); border: 1px solid var(--line); border-radius: 0; padding: 0.4rem 0.7rem; background: var(--bg); }
+    /* each tool: its logo, where it has a well-known one, then its name in the reading face */
+    .stack li { display: inline-flex; align-items: center; gap: 0.45rem; font: 400 0.85rem/1 var(--sans); color: var(--text); border: 1px solid var(--line); border-radius: 0; padding: 0.4rem 0.7rem; background: var(--bg); }
+    .stack li:has(img) { padding-left: 0.3rem; }
+    .stack img { width: 1.3rem; height: 1.3rem; flex: none; box-sizing: border-box; padding: 0.2rem; background: #f6f2e9; border-radius: 2px; }   /* a light tile, so dark logos read in both themes */
+    .stack img.aws { padding: 0; background: none; }   /* AWS service icons carry their own coloured tile */
     .p-fig { margin: 0; padding: 1.25rem 1.4rem 1.1rem; --fill: var(--card); }
     .p-fig figcaption strong { display: block; font: 600 1.3rem/1.25 var(--serif); }
     .p-fig figcaption span { display: block; margin-top: 0.35rem; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
@@ -322,6 +334,56 @@
     .tip b { font-weight: 600; }
     .tip i { display: inline-block; width: 0.6rem; height: 2px; margin-right: 0.4rem; vertical-align: middle; }
     .tip span { float: right; margin-left: 1rem; font-variant-numeric: tabular-nums; }
+    /* AWS project: the pipeline as two lanes, clinician above and AI below. Boxes sit in a
+       6-column grid; the arrows are drawn over them by script from the boxes' positions. */
+    .lanes { position: relative; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: auto auto; column-gap: 0.9rem; row-gap: 0.6rem; margin: 1rem 0 0; padding: 0; list-style: none; }
+    .lanes::before, .lanes::after {   /* the two lane bands */
+      grid-column: 1 / -1; z-index: 0; border: 1px solid var(--line); background: var(--bg);
+      font: 400 10px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 0.5rem 0.6rem;
+    }
+    .lanes::before { content: "Clinician"; grid-row: 1; }
+    .lanes::after { content: "AI pipeline \00b7  ~4 min, automated"; grid-row: 2; }
+    .lanes li { z-index: 1; display: flex; padding: 1.7rem 0 0.55rem; }
+    .lanes li.human { grid-row: 1; }
+    .lanes li.ai { grid-row: 2; }
+    .lanes li:nth-child(1) { grid-column: 1; } .lanes li:nth-child(2) { grid-column: 2; } .lanes li:nth-child(3) { grid-column: 3; }
+    .lanes li:nth-child(4) { grid-column: 4; } .lanes li:nth-child(5) { grid-column: 5; } .lanes li:nth-child(6) { grid-column: 6; }
+    .lanes li { padding-left: 0.3rem; padding-right: 0.3rem; }
+    .lanes button {
+      flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+      padding: 0.5rem 0.3rem 0.45rem; cursor: pointer; text-align: center;
+      font: 500 0.78rem/1.2 var(--sans); color: var(--text);
+      background: var(--card); border: 1px solid var(--line); border-radius: 0; transition: border-color 0.15s;
+    }
+    .lanes button svg { width: 2.1rem; height: 2.1rem; overflow: visible; }
+    .lanes button svg * { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+    .lanes button svg .hi { stroke: var(--viz-hi); }
+    .lanes button svg .fill { fill: var(--viz-hi); stroke: none; }
+    .lanes button:hover, .lanes button[aria-pressed="true"] { border-color: var(--accent); }
+    .lanes .wires { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .lanes .wires path { fill: none; stroke: var(--muted); stroke-width: 1; }
+    .lanes .wires .loop { stroke: var(--viz-hi); stroke-dasharray: 4 3; }
+    .lanes .wires marker path { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: none; }
+    .lanes .wires marker.hi path { stroke: var(--viz-hi); }
+    .lanes .wires text { font: 400 10px var(--mono); letter-spacing: 0.06em; fill: var(--viz-hi); }
+    .speedup-label { margin: 1rem 0 0.15rem; font: 400 0.95rem/1.5 var(--sans); color: var(--muted); }   /* same face as the other labels */
+    .speedup { margin: 0 0 0.2rem; font: 600 2.2rem/1.1 var(--serif); }
+    .speedup span { color: var(--viz-hi); padding: 0 0.15em; }
+    .flow-note { min-height: 4.6rem; margin: 0.75rem 0 0; padding: 0.7rem 0.85rem; border: 1px solid var(--line); background: var(--bg); font-size: 0.88rem; line-height: 1.5; }
+    .flow-note b { display: block; font: 600 1.02rem/1.3 var(--serif); margin-bottom: 0.15rem; }
+    .flow-note .hintline { color: var(--muted); }
+    /* narrow: one column, lane named on each box, arrows between boxes, no drawn wires */
+    @media (max-width: 40rem) {
+      .lanes { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: 0; }
+      .lanes::before, .lanes::after, .lanes .wires { display: none; }
+      .lanes li, .lanes li.human, .lanes li.ai { grid-row: auto; grid-column: 1 !important; flex-direction: column; padding: 0; }
+      .lanes li + li::before { content: ""; width: 1px; height: 0.8rem; margin-left: 1.6rem; background: var(--muted); }
+      .lanes button { flex-direction: row; justify-content: flex-start; gap: 0.75rem; text-align: left; padding: 0.45rem 0.6rem; }
+      .lanes button svg { width: 1.6rem; height: 1.6rem; flex: none; }
+      .lanes button::after { margin-left: auto; font: 400 10px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+      .lanes .human button::after { content: "Clinician"; }
+      .lanes .ai button::after { content: "AI"; }
+    }
     .counts { display: flex; flex-wrap: wrap; gap: 1rem 2.2rem; margin: 1.1rem 0 1.2rem; }
     .counts b { display: block; font: 600 2rem/1 var(--serif); }
     .counts span { font-size: 0.82rem; color: var(--muted); }
@@ -335,7 +397,7 @@
     .steps .now::before { border-color: var(--viz-hi); background: linear-gradient(90deg, var(--viz-hi) 50%, transparent 50%); }
 
     .contact { margin: 0; display: flex; flex-wrap: wrap; gap: 1.5rem 4.5rem; }
-    .contact dt { font: 400 0.72rem/1.6 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .contact dt { font: 400 0.95rem/1.5 var(--sans); color: var(--muted); margin-bottom: 0.2rem; }   /* the same reading face as the other labels */
     .contact dd { margin: 0; overflow-wrap: anywhere; }
 
     footer {
@@ -349,7 +411,7 @@
     footer a { color: var(--muted); }
 
     /* Departure Mono is drawn on an 11px grid; every label sits at exactly 11px so it stays crisp */
-    .when, .qmr dt, .contact dt, .tag, .stack li, .steps em, footer { font-size: 11px; letter-spacing: 0.08em; }
+    .tag, .steps em, footer { font-size: 11px; letter-spacing: 0.08em; }
 
     /* the top bar on narrower screens: tighter links first, then no section links at all */
     @media (max-width: 75rem) {
@@ -400,7 +462,6 @@
       <a href="#experience">Experience</a>
       <a href="#about">About</a>
       <a href="#education">Education</a>
-      <a href="#publications">Publications</a>
       <a href="#contact">Contact</a>
     </nav>
     <a class="resume" href="resume.pdf">Résumé <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7.5 8 11l3.5-3.5M3 13.5h10"/></svg></a>
@@ -429,36 +490,47 @@
         <header class="sec-head">
           <h2 id="projects-h">Projects</h2>
           <div class="picker" role="tablist" aria-label="Choose a project">
-            <button type="button" role="tab" id="tab-moss" aria-controls="p-moss" aria-selected="true">moss</button>
+            <button type="button" role="tab" id="tab-cht" aria-controls="p-cht" aria-selected="true">No-Code CHT Workflow</button>
             <button type="button" role="tab" id="tab-fd" aria-controls="p-fd" aria-selected="false" tabindex="-1">FilingDelta</button>
+            <button type="button" role="tab" id="tab-moss" aria-controls="p-moss" aria-selected="false" tabindex="-1">moss</button>
           </div>
         </header>
         <div class="sec-body">
 
-          <article class="project" id="p-moss" role="tabpanel" aria-labelledby="tab-moss">
-            <div>
-              <div class="p-head">
-                <h3>moss</h3>
-                <p class="when">2026</p>
-              </div>
-            <dl class="qmr">
-              <div><dt>Question</dt><dd>Why do plants spread faster than an average dispersal distance predicts? (Reid's paradox: oak reclaimed Britain far too fast after the last ice age.)</dd></div>
-              <div><dt>Method</dt><dd>Simulated spread under Gaussian, exponential and lognormal dispersal kernels with the same mean distance; modelled when ferns appear with Weibull waiting times.</dd></div>
-              <div><dt>Result</dt><dd>After 40 generations the fat-tailed lognormal colony reaches 14&times; farther than the Gaussian one, and it is still speeding up.</dd></div>
-            </dl>
-              <ul class="stack" aria-label="Built with">
-                <li>Python</li><li>NumPy</li><li>SciPy</li><li>Matplotlib</li><li>JavaScript canvas</li>
-              </ul>
-              <p class="project-links"><a href="https://github.com/PrithviHegde/moss" target="_blank" rel="noopener">Notebook and write-up</a></p>
-            </div>
-            <figure class="p-fig">
-              <figcaption>
-                <strong>Same average spore, 14&times; the reach of the Gaussian, and still speeding up</strong>
-                <span>Farthest colony after each generation, in multiples of the mean spore distance. Line: median of 20 runs. Band: middle 80% of runs.</span>
-              </figcaption>
-              <div class="chart" id="race" role="img" aria-label="Line chart of how far each colony has spread over 40 generations. The lognormal colony reaches 627 mean distances and is still speeding up; the exponential reaches 65 and the Gaussian 44."></div>
-            </figure>
-          </article>
+          <article class="project" id="p-cht" role="tabpanel" aria-labelledby="tab-cht">
+        <div>
+          <div class="p-head">
+            <h3>No-Code CHT Workflow <span class="tag">AWS Breaking Barriers 2026 Finalist</span></h3>
+            <p class="when">Nov 2026</p>
+          </div>
+        <dl class="qmr">
+          <div><dt>Problem</dt><dd>Turning a clinical guideline into a form that community health workers can use takes weeks of manual work.</dd></div>
+          <div><dt>Solution</dt><dd>An AI pipeline on AWS that reads the guideline, writes its decisions as a checkable logic model, and compiles a ready-to-deploy Community Health Toolkit form, with a clinician signing off.</dd></div>
+          <div><dt>Result</dt><dd>The automated part takes ~4 minutes instead of weeks. Finalist at AWS Breaking Barriers 2026, built with a team of 7.</dd></div>
+        </dl>
+          <ul class="stack" aria-label="Built with">
+            <li><img class="aws" src="logos/tools/aws-bedrock.svg" alt="" width="20" height="20">Amazon Bedrock</li><li><img class="aws" src="logos/tools/aws-lambda.svg" alt="" width="20" height="20">AWS Lambda</li><li><img class="aws" src="logos/tools/aws-api-gateway.svg" alt="" width="20" height="20">API Gateway</li><li><img class="aws" src="logos/tools/aws-s3.svg" alt="" width="20" height="20">S3</li><li><img class="aws" src="logos/tools/aws-dynamodb.svg" alt="" width="20" height="20">DynamoDB</li><li><img src="logos/tools/anthropic.svg" alt="" width="20" height="20">Claude</li><li><img src="logos/tools/meta.svg" alt="" width="20" height="20">Llama</li>
+          </ul>
+          <p class="project-links"><a href="https://github.com/UtG1209/Medic-Mobile---AWS-Breaking-Barrier-" target="_blank" rel="noopener">Code</a></p>
+        </div>
+        <figure class="p-fig">
+          <figcaption>
+            <strong>The AI drafts; the clinician takes all medical decisions</strong>
+          </figcaption>
+          <p class="speedup-label">Time to draft a form</p>
+          <p class="speedup">Weeks <span aria-hidden="true">&rarr;</span> ~4 min</p>
+          <ol class="lanes" aria-label="How the pipeline works: who does each stage">
+            <li class="human"><button type="button" aria-pressed="false" data-note="A clinician uploads a WHO guideline PDF."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18"/><path d="M9 8h6M9 11h6M9 14h4M9 17h5"/></svg>Guideline</button></li>
+            <li class="ai"><button type="button" aria-pressed="false" data-note="One model drafts the rules, quoting the guideline word for word; a second model checks the draft independently."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="11" height="14"/><rect class="hi" x="9" y="7" width="11" height="14"/><path class="hi" d="M11.5 14l2.5 2.5 4-5"/></svg>Extract</button></li>
+            <li class="ai"><button type="button" aria-pressed="false" data-note="The guideline's decisions become a JSON decision table: the first matching rule wins, and every rule cites its page."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-2 0-2 2-2 4s-2 4-2 4 2 0 2 4 0 4 2 4M16 4c2 0 2 2 2 4s2 4 2 4-2 0-2 4 0 4-2 4"/><path class="hi" d="M10 10h4M10 14h4"/></svg>Logic model</button></li>
+            <li class="ai"><button type="button" aria-pressed="false" data-note="Automatic checks for structure, quotes, numbers and logic, plus synthetic test patients."><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="hi" x="3" y="4" width="4" height="4"/><path d="M10 6h11"/><rect class="hi" x="3" y="10" width="4" height="4"/><path d="M10 12h9"/><rect class="hi" x="3" y="16" width="4" height="4"/><path d="M10 18h10"/></svg>Checks</button></li>
+            <li class="human"><button type="button" aria-pressed="false" data-note="A clinician answers open questions, edits rules and signs off. Each edit makes a new version, which is checked again."><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.5"/><path d="M5 19c1-4 4-6 7-6s6 2 7 6"/><path class="hi" d="M4 22c2-2 4-2 5 0s3 2 5 0 3-2 5 0"/></svg>Review</button></li>
+            <li class="ai"><button type="button" aria-pressed="false" data-note="Compiled into a working Community Health Toolkit form for a health worker's phone."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M9.5 6h5M9.5 9h4"/><rect class="fill" x="9.5" y="15" width="5" height="2.5"/></svg>Form</button></li>
+          </ol>
+          <p class="flow-note" aria-live="polite"><span class="hintline">Hover or tap a stage.</span></p>
+        </figure>
+      </article>
+
 
           <article class="project" id="p-fd" role="tabpanel" aria-labelledby="tab-fd" hidden>
             <div>
@@ -472,7 +544,7 @@
               <div><dt>Finding</dt><dd>For large caps, a 10-Q or 10-K on its own moves the stock no more than an ordinary day (mean |SCAR| 0.81, against 0.80 expected with no news; 1.97 at earnings releases). The information is priced at the earnings release, before the filing, so language changes can't predict filing-day returns.</dd></div>
             </dl>
               <ul class="stack" aria-label="Built with">
-                <li>Python</li><li>edgartools</li><li>sentence-transformers</li><li>RapidFuzz</li><li>SciPy</li><li>Ollama</li><li>Pydantic</li><li>pandas</li><li>yfinance</li><li>matplotlib</li>
+                <li><img src="logos/tools/python.svg" alt="" width="20" height="20">Python</li><li>sentence-transformers</li><li><img src="logos/tools/scipy.svg" alt="" width="20" height="20">SciPy</li><li><img src="logos/tools/ollama.svg" alt="" width="20" height="20">Ollama</li><li><img src="logos/tools/pydantic.svg" alt="" width="20" height="20">Pydantic</li><li><img src="logos/tools/pandas.svg" alt="" width="20" height="20">pandas</li>
               </ul>
               <p class="project-links"><a href="https://github.com/PrithviHegde/filingdelta" target="_blank" rel="noopener">Code and notes</a></p>
             </div>
@@ -493,6 +565,31 @@
                 <li class="done"><span>Abnormal returns around each filing and each earnings release</span><em>Done</em></li>
                 <li class="done"><span>Price test: do material changes move the stock, and how quickly?</span><em>Done</em></li>
               </ol>
+            </figure>
+          </article>
+
+          <article class="project" id="p-moss" role="tabpanel" aria-labelledby="tab-moss" hidden>
+            <div>
+              <div class="p-head">
+                <h3>moss</h3>
+                <p class="when">2026</p>
+              </div>
+            <dl class="qmr">
+              <div><dt>Question</dt><dd>Why do plants spread faster than an average dispersal distance predicts? (Reid's paradox: oak reclaimed Britain far too fast after the last ice age.)</dd></div>
+              <div><dt>Method</dt><dd>Simulated spread under Gaussian, exponential and lognormal dispersal kernels with the same mean distance; modelled when ferns appear with Weibull waiting times.</dd></div>
+              <div><dt>Result</dt><dd>After 40 generations the fat-tailed lognormal colony reaches 14&times; farther than the Gaussian one, and it is still speeding up.</dd></div>
+            </dl>
+              <ul class="stack" aria-label="Built with">
+                <li><img src="logos/tools/python.svg" alt="" width="20" height="20">Python</li><li><img src="logos/tools/numpy.svg" alt="" width="20" height="20">NumPy</li><li><img src="logos/tools/scipy.svg" alt="" width="20" height="20">SciPy</li><li>Matplotlib</li><li><img src="logos/tools/javascript.svg" alt="" width="20" height="20">JavaScript canvas</li>
+              </ul>
+              <p class="project-links"><a href="https://github.com/PrithviHegde/moss" target="_blank" rel="noopener">Notebook and write-up</a></p>
+            </div>
+            <figure class="p-fig">
+              <figcaption>
+                <strong>Same average spore, 14&times; the reach of the Gaussian, and still speeding up</strong>
+                <span>Farthest colony after each generation, in multiples of the mean spore distance. Line: median of 20 runs. Band: middle 80% of runs.</span>
+              </figcaption>
+              <div class="chart" id="race" role="img" aria-label="Line chart of how far each colony has spread over 40 generations. The lognormal colony reaches 627 mean distances and is still speeding up; the exponential reaches 65 and the Gaussian 44."></div>
             </figure>
           </article>
         </div>
@@ -577,6 +674,13 @@
             <div>
               <h3>BITS Pilani, Hyderabad</h3>
               <p class="role">BE, Computer Science</p>
+              <div class="paper">
+                <p class="paper-label">Publications</p>
+                <div class="paper-item">
+                <p class="paper-title"><a href="https://doi.org/10.1109/SIN60469.2023.10475109" target="_blank" rel="noopener">Secure and Efficient Key Management for Deduplicated Cloud Storage Systems</a></p>
+                <p class="cite">J. Dave, A. Kanodia, R. Srivastava, K. Singh, <span class="me">P. Hegde</span>, H. Desai. <em>16th International Conference on Security of Information and Networks (SIN)</em>, 2023.</p>
+                </div>
+              </div>
             </div>
             <p class="when">2020&ndash;2024</p>
           </article>
@@ -585,24 +689,10 @@
     </div>
 
     <div class="chapter" id="ch-end">
-      <section id="publications" aria-labelledby="pubs-h">
-        <header class="sec-head">
-          <h2 id="pubs-h">Publications</h2>
-        </header>
-        <div class="sec-body">
-          <article class="entry">
-            <div class="when">2023</div>
-            <div>
-              <h3>Secure and Efficient Key Management for Deduplicated Cloud Storage Systems</h3>
-              <p class="cite">J. Dave, A. Kanodia, R. Srivastava, K. Singh, <span class="me">P. Hegde</span>, H. Desai. <em>16th International Conference on Security of Information and Networks (SIN)</em>, 2023. <a href="https://doi.org/10.1109/SIN60469.2023.10475109" target="_blank" rel="noopener">DOI</a></p>
-            </div>
-          </article>
-        </div>
-      </section>
 
       <section id="contact" aria-labelledby="contact-h">
         <header class="sec-head">
-          <h2 id="contact-h">Contact</h2>
+          <h2 id="contact-h">Contact Me</h2>
         </header>
         <div class="sec-body">
           <dl class="contact">
@@ -824,6 +914,76 @@
       }
       draw();
       if ('ResizeObserver' in window) { var lastW = el.clientWidth; new ResizeObserver(function () { if (el.clientWidth !== lastW) { lastW = el.clientWidth; draw(); } }).observe(el); }
+    })();
+  </script>
+  <script>
+    // AWS project: draw the arrows between the lane boxes (from their positions, so they follow the
+    // layout) and show a stage's note on hover or focus; a tap or click pins it.
+    (function () {
+      var lanes = document.querySelector('.lanes'), note = document.querySelector('.flow-note');
+      if (!lanes || !note) return;
+      var NS = 'http://www.w3.org/2000/svg', items = [].slice.call(lanes.querySelectorAll('li'));
+      var buttons = items.map(function (li) { return li.querySelector('button'); }), pinned = null;
+      var svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('class', 'wires'); svg.setAttribute('aria-hidden', 'true');
+      // two arrowheads, plain and accent (one per wire colour)
+      svg.innerHTML = '<defs>' + ['lane-arrow', 'lane-arrow-hi'].map(function (id, n) {
+        return '<marker id="' + id + '"' + (n ? ' class="hi"' : '') + ' viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1 1L9 5L1 9"/></marker>';
+      }).join('') + '</defs>';
+      lanes.appendChild(svg);
+      function box(n) {
+        var r = items[n].querySelector('button').getBoundingClientRect(), o = lanes.getBoundingClientRect();
+        return { l: r.left - o.left, r: r.right - o.left, t: r.top - o.top, b: r.bottom - o.top, x: (r.left + r.right) / 2 - o.left, y: (r.top + r.bottom) / 2 - o.top };
+      }
+      function path(d, cls) {
+        var p = document.createElementNS(NS, 'path');
+        p.setAttribute('d', d); p.setAttribute('marker-end', cls === 'loop' ? 'url(#lane-arrow-hi)' : 'url(#lane-arrow)');
+        if (cls) p.setAttribute('class', cls);
+        svg.appendChild(p);
+      }
+      function wire() {
+        [].slice.call(svg.querySelectorAll(':scope > path, :scope > text')).forEach(function (n) { n.remove(); });   // not the arrowheads in <defs>
+        if (getComputedStyle(svg).display === 'none') return;
+        var b = items.map(function (_, n) { return box(n); });
+        path('M' + b[0].r + ' ' + b[0].y + 'H' + b[1].x + 'V' + (b[1].t - 2));                    // guideline down to extract
+        path('M' + b[1].r + ' ' + b[1].y + 'H' + (b[2].l - 2));                                    // extract to logic model
+        path('M' + b[2].r + ' ' + b[2].y + 'H' + (b[3].l - 2));                                    // logic model to checks
+        path('M' + b[3].r + ' ' + b[3].y + 'H' + b[4].x + 'V' + (b[4].b + 2));                    // checks up to review
+        path('M' + b[4].r + ' ' + b[4].y + 'H' + b[5].x + 'V' + (b[5].t - 2));                    // review down to the form
+        path('M' + b[4].l + ' ' + b[4].y + 'H' + b[2].x + 'V' + (b[2].t - 2), 'loop');            // edits loop back to the logic model
+        var t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', (b[2].x + b[4].l) / 2); t.setAttribute('y', b[4].y - 6); t.setAttribute('text-anchor', 'middle');
+        t.textContent = 'edits \u2192 new version';
+        svg.appendChild(t);
+      }
+      // the note box keeps the height of its longest note, so picking a stage never resizes it
+      function fitNote() {
+        if (!note.offsetWidth) return;
+        var keep = note.innerHTML, tallest = 0;
+        note.style.minHeight = '';
+        buttons.concat([null]).forEach(function (b) { show(b, true); tallest = Math.max(tallest, note.offsetHeight); });
+        note.innerHTML = keep;
+        note.style.minHeight = tallest + 'px';
+      }
+      wire();
+      if ('ResizeObserver' in window) new ResizeObserver(function () { wire(); fitNote(); }).observe(lanes);
+      if (document.fonts) document.fonts.ready.then(function () { wire(); fitNote(); });
+      // redraw when the tab becomes visible (hidden panels have no layout)
+      [].slice.call(document.querySelectorAll('.picker [role="tab"]')).forEach(function (t) { t.addEventListener('click', function () { setTimeout(function () { wire(); fitNote(); }, 0); }); });
+
+      function show(b, measuring) {
+        if (!measuring) buttons.forEach(function (x) { x.setAttribute('aria-pressed', x === b); });
+        if (!b) { note.innerHTML = '<span class="hintline">Hover or tap a stage.</span>'; return; }
+        note.innerHTML = '';
+        var h = document.createElement('b'); h.textContent = b.textContent.trim();
+        note.appendChild(h); note.appendChild(document.createTextNode(b.dataset.note));
+      }
+      buttons.forEach(function (b) {
+        b.addEventListener('mouseenter', function () { show(b); });
+        b.addEventListener('focus', function () { show(b); });
+        b.addEventListener('click', function () { pinned = pinned === b ? null : b; show(pinned || b); });
+      });
+      lanes.addEventListener('mouseleave', function () { show(pinned); });
     })();
   </script>
   <script src="moss.js" defer></script>
